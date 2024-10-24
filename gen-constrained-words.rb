@@ -4,6 +4,7 @@ require 'debug'
 
 db = SQLite3::Database.new "words.db"
 
+@letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
 
 # Example:
 # cat = constraints("words", a: "c", b: "a", c: "t", d: "s")
@@ -13,7 +14,7 @@ db = SQLite3::Database.new "words.db"
 def constraints(table_name, **args)
   conditions = []
   values = []
-  ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y'].each do |letter|
+  @letters.each do |letter|
     value = args[letter.to_sym]
     if value == :any
       conditions << "#{table_name}.\"#{letter}\" is not null"
@@ -28,12 +29,35 @@ def constraints(table_name, **args)
   [conditions.join(' and '), values]
 end
 
-# structure
-# x x x x x
-# x . x . x
-# x . x . x
-# . . x . .
-# x x x x x
+def parse_structure(structure)
+  words = {}
+   
+  structure.each_with_index do |nums, i|
+    letter = @letters[i]
+    nums = nums.split('/')
+    nums.each do |num|
+      next if num == '.'
+      words[num] = (words[num] || [])
+      words[num] << letter
+    end
+  end
+
+  across = words.select { |key, value| key.end_with?('a') && value.length > 1 }
+  down = words.select { |key, value| key.end_with?('d') && value.length > 1 }
+
+  [across, down]
+end
+
+pp parse_structure %w[
+1a/1d 1a 1a/2d 1a 1a/3d
+1d    .  2d    .  3d 
+1d    .  2d    .  3d
+.     .  2d    .  .
+4a    4a 2d/4a 4a 4a
+]
+
+exit(0)
+
 rows = db.execute <<-SQL
   with one_across as (
     select * from words
