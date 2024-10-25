@@ -42,46 +42,58 @@ def parse_structure(structure)
     end
   end
 
-  across = words.select { |key, value| key.end_with?('a') && value.length > 1 }
-  down = words.select { |key, value| key.end_with?('d') && value.length > 1 }
-
-  [across, down]
+  words.select { |_key, value| value.length > 1 }
 end
 
-pp parse_structure %w[
-1a/1d 1a 1a/2d 1a 1a/3d
-1d    .  2d    .  3d 
-1d    .  2d    .  3d
-.     .  2d    .  .
-4a    4a 2d/4a 4a 4a
+@words = parse_structure %w[
+a1/d1 a1 a1/d2 a1 a1/d3
+d1    .  d2    .  d3 
+d1    .  d2    .  d3
+.     .  d2    .  .
+a4    a4 d2/a4 a4 a4
 ]
 
-exit(0)
+select = ->(word_key) { "select * from words as #{word_key}" }
+where = ->(word_key) {
+  letters = @words[word_key].map{ |letter| [letter.to_sym, :any] }.to_h
+  "where #{constraints(word_key, **letters)[0]}"
+}
+join = ->(this_word_key, other_word_key, letter) {
+  idx_this = @words.keys.index(this_word_key)
+  idx_other = @words.keys.index(other_word_key)
+  difference = idx_this - idx_other
+  relative_cte_spacing = difference > 1 ? ":#{difference - 1}" : ""
+  prev_word_key = @words.keys[idx_this - 1]
+  "join #{prev_word_key} on #{prev_word_key}.\"#{letter}#{relative_cte_spacing}\" = #{this_word_key}.#{letter}"
+}
 
-rows = db.execute <<-SQL
-  with one_across as (
-    select * from words
-    where #{constraints("words", a: :any, b: :any, c: :any, d: :any, e: :any)[0]}
-  ), one_down as (
-    select * from words as one_down
-    join one_across on one_across.a = one_down.a
-    where #{constraints("one_down", a: :any, f: :any, k: :any)[0]}
-  ), two_down as (
-    select * from words as two_down
-    join one_down on one_down."c:1" = two_down.c
-    where #{constraints("two_down", c: :any, h: :any, m: :any, r: :any, w: :any)[0]}
-  ), three_down as (
-    select * from words as three_down
-    join two_down on two_down."e:2" = three_down.e
-    where #{constraints("three_down", e: :any, j: :any, o: :any)[0]}
-  ), four_across as (
-    select * from words as four_across
-    join three_down on three_down."w:1" = four_across.w
-    where #{constraints("four_across", u: :any, v: :any, w: :any, x: :any, y: :any)[0]}
+query = <<-SQL
+  with a1 as (
+    #{select.("a1")}
+    #{where.("a1")}
+  ), d1 as (
+    #{select.("d1")}
+    #{join.("d1", "a1", "a")}
+    #{where.("d1")}
+  ), d2 as (
+    #{select.("d2")}
+    #{join.("d2", "a1", "c")}
+    #{where.("d2")}
+  ), d3 as (
+    #{select.("d3")}
+    #{join.("d3", "a1", "e")}
+    #{where.("d3")}
+  ), a4 as (
+    #{select.("a4")}
+    #{join.("a4", "d2", "w")}
+    #{where.("a4")}
   )
-  select * from four_across
-  limit 1 offset 104557
+  select * from a4
+  limit 1
 SQL
+File.write "latest-query.sql", query
+
+rows = db.execute query
 
 def print_crossword(result)
   final_table = (1..25).map { nil }
