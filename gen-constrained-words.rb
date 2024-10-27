@@ -39,8 +39,11 @@ def parse_constraints_from_file(file_name)
     .to_h
 end
 
-@words = parse_words_from_file ARGV[0]
-@word_constraints = parse_constraints_from_file ARGV[0]
+filename = ARGV[0]
+raise "Pass a filename with a structure" unless filename
+
+@words = parse_words_from_file filename
+@word_constraints = parse_constraints_from_file filename
 
 def constraints(table_name, **args)
   conditions = []
