@@ -48,10 +48,21 @@ d1    .  d2/a4 a4 d3/a4
 a5    a5 d2/a5 a5 a5
 ]
 
+@query_values = []
 select = ->(word_key) { "select * from words as #{word_key}" }
-where = ->(word_key) {
-  letters = @words[word_key].map{ |letter| [letter.to_sym, :any] }.to_h
-  "where #{constraints(word_key, **letters)[0]}"
+where = ->(word_key, word: word = '') {
+  grid_letters = @words[word_key]
+  word_letters = word.split('')
+
+  letters = grid_letters.each_with_index.map do |grid_letter, idx|
+    letter = word_letters[idx] || :any
+    [grid_letter.to_sym, letter]
+  end.to_h
+
+  sql, values = constraints(word_key, **letters)
+  @query_values += values
+
+  "where #{sql}"
 }
 join = ->(this_word_key, *joins) {
   idx_this = @words.keys.index(this_word_key)
@@ -92,15 +103,15 @@ query = <<-SQL
   ), a5 as (
     #{select.("a5")}
     #{join.("a5", ["d2", "w"])}
-    #{where.("a5")}
+    #{where.("a5", word: "about")}
   )
   select * from a5
   limit 1
-  offset 0
+  offset 10
 SQL
 File.write "latest-query.sql", query
 
-rows = db.execute query
+rows = db.execute query, @query_values
 
 def print_crossword(result)
   final_table = (1..25).map { nil }
