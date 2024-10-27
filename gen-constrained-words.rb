@@ -26,6 +26,34 @@ def parse_words_from_file(file_name)
   words.select { |_key, value| value.length > 1 }
 end
 
+def parse_joins_from_file(file_name)
+   structure_file = File.readlines(file_name)
+
+   joins = {}
+   structure_file[..4]
+    .map { |line| line.strip.split ' ' }
+    .flatten
+    .each_with_index do |entry, i|
+      letter = @letters[i]
+      word_keys = entry.split('/')
+      next unless word_keys.length > 1
+     
+      word_keys.each_with_index do |word_key, j|
+        lower_bound = 0
+        upper_bound = [0, j-1].max
+        other_keys_range = lower_bound..upper_bound
+        other_keys = word_keys[other_keys_range]
+          .reject { |key| key == word_key }
+          .map { |key| [key, letter] }
+        word_joins = joins[word_key] || []
+        word_joins += other_keys
+        joins[word_key] = word_joins
+      end
+    end
+
+   joins
+end
+
 def parse_constraints_from_file(file_name)
   structure_file = File.readlines(file_name)
   constraint_lines = 
@@ -44,6 +72,7 @@ raise "Pass a filename with a structure" unless filename
 
 @words = parse_words_from_file filename
 @word_constraints = parse_constraints_from_file filename
+@joins = parse_joins_from_file filename
 
 def constraints(table_name, **args)
   conditions = []
@@ -96,33 +125,22 @@ join = ->(this_word_key, *joins) {
 
   "join #{prev_word_key} on #{join_conditions}"
 }
+cte = ->(word_key) {
+  idx_this = @words.keys.index(word_key)
+  "
+  #{idx_this == 0 ? 'with ' : ', '}#{word_key} as (
+    #{select.(word_key)}
+    #{idx_this == 0 ? '' : join.(word_key, *@joins[word_key])}
+    #{where.(word_key)}
+  )
+  "
+}
+ctes = @words.keys.map { |word_key| cte.(word_key) }.join
 
 query = <<-SQL
-  with a1 as (
-    #{select.("a1")}
-    #{where.("a1")}
-  ), d1 as (
-    #{select.("d1")}
-    #{join.("d1", ["a1", "a"])}
-    #{where.("d1")}
-  ), d2 as (
-    #{select.("d2")}
-    #{join.("d2", ["a1", "c"])}
-    #{where.("d2")}
-  ), d3 as (
-    #{select.("d3")}
-    #{join.("d3", ["a1", "e"])}
-    #{where.("d3")}
-  ), a4 as (
-    #{select.("a4")}
-    #{join.("a4", ["d2", "m"], ["d3", "o"])}
-    #{where.("a4")}
-  ), a5 as (
-    #{select.("a5")}
-    #{join.("a5", ["d2", "w"])}
-    #{where.("a5")}
-  )
-  select * from a5
+  #{ctes}
+  select *
+  from #{@words.keys[-1]}
   limit 1
   offset 10
 SQL
