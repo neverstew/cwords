@@ -6,6 +6,42 @@ db = SQLite3::Database.new "words.db"
 
 @letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
 
+def parse_words_from_file(file_name)
+  structure_file = File.readlines(file_name)
+  words = {}
+   
+  structure_file[..4]
+    .map { |line| line.strip.split ' ' }
+    .flatten
+    .each_with_index do |nums, i|
+      letter = @letters[i]
+      nums = nums.split('/')
+      nums.each do |num|
+        next if num == '.'
+        words[num] = (words[num] || [])
+        words[num] << letter
+      end
+    end
+
+  words.select { |_key, value| value.length > 1 }
+end
+
+def parse_constraints_from_file(file_name)
+  structure_file = File.readlines(file_name)
+  constraint_lines = 
+
+  structure_file[5..]
+    .reject { |line| line.strip.length == 0 }
+    .map do |line|
+      word_key, word = line.split(': ')
+      [word_key, word]
+    end
+    .to_h
+end
+
+@words = parse_words_from_file ARGV[0]
+@word_constraints = parse_constraints_from_file ARGV[0]
+
 def constraints(table_name, **args)
   conditions = []
   values = []
@@ -24,34 +60,12 @@ def constraints(table_name, **args)
   [conditions.join(' and '), values]
 end
 
-def parse_structure(structure)
-  words = {}
-   
-  structure.each_with_index do |nums, i|
-    letter = @letters[i]
-    nums = nums.split('/')
-    nums.each do |num|
-      next if num == '.'
-      words[num] = (words[num] || [])
-      words[num] << letter
-    end
-  end
-
-  words.select { |_key, value| value.length > 1 }
-end
-
-@words = parse_structure %w[
-a1/d1 a1 a1/d2 a1 a1/d3
-d1    .  d2    .  d3 
-d1    .  d2/a4 a4 d3/a4
-.     .  d2    .  .
-a5    a5 d2/a5 a5 a5
-]
-
 @query_values = []
 select = ->(word_key) { "select * from words as #{word_key}" }
-where = ->(word_key, word: word = '') {
+where = ->(word_key) {
   grid_letters = @words[word_key]
+
+  word = @word_constraints[word_key] || ''
   word_letters = word.split('')
 
   letters = grid_letters.each_with_index.map do |grid_letter, idx|
@@ -103,7 +117,7 @@ query = <<-SQL
   ), a5 as (
     #{select.("a5")}
     #{join.("a5", ["d2", "w"])}
-    #{where.("a5", word: "about")}
+    #{where.("a5")}
   )
   select * from a5
   limit 1
