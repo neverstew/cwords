@@ -1,7 +1,7 @@
 require 'sqlite3'
 
 words = 
-  File.readlines('words-up-to-5.txt')
+  File.readlines('1k-up-to-5.txt')
     .map(&:strip)
 
 db = SQLite3::Database.new "words.db"
