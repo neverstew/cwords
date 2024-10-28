@@ -142,7 +142,7 @@ query = <<-SQL
   select *
   from #{@words.keys[-1]}
   limit 1
-  offset 10
+  offset 25
 SQL
 File.write "latest-query.sql", query
 
@@ -156,7 +156,14 @@ def print_crossword(result)
       final_table[i] = table[i]
     end
   end
-  final_table.map{ |letter| letter || '.' }.each_slice(5){ |row| pp row.join(' ') }
+  final_table.map{ |letter| letter || '.' }.each_slice(5){ |row| puts row.join(' ') }
+  puts ""
+  @words
+    .keys.sort
+    .each { |key|
+      word = @words[key].map{|grid_letter| final_table[@letters.index(grid_letter)]}.join('')
+      puts "#{key}: #{word}"
+    }
 end
 
 print_crossword(rows[0])
