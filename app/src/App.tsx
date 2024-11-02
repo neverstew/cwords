@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { KeyboardEvent, useEffect, useRef } from 'react';
-import { useGame } from './useGame';
+import { GameState, useGame } from './useGame';
 import { GameContextProvider, useGameContext } from "./useGameContext";
 
 const App = () => {
@@ -9,7 +9,10 @@ const App = () => {
   return (
     <GameContextProvider value={game}>
       <Header />
-      <Main />
+      <div className='flex md:grid grid-cols-2'>
+        <Main />
+        <Aside />
+      </div>
     </GameContextProvider>
   );
 }
@@ -26,6 +29,35 @@ const Main = () => (
   </main>
 );
 
+const Aside = () => (
+  <aside className='p-6'>
+    <nav>
+      <Words />
+    </nav>
+  </aside>
+)
+
+const Words = () => {
+  const [state] = useGameContext();
+
+  return (
+    <>
+      {Object.entries(state.words).map(([key, word]) => (
+        <Word key={key} id={key as keyof GameState['words']} word={word} />
+      ))}
+    </>
+  )
+}
+
+const Word = ({ id, word }: { id: keyof GameState['words'], word: GameState['words'][keyof GameState['words']] }) => {
+  const [, dispatch] = useGameContext();
+
+  return (
+    <div>
+      {id}: <button onClick={() => dispatch({ type: 'select-word', key: id })}>{word.clue}</button>
+    </div>
+  )
+}
 
 const Crossword = () => {
   const [state] = useGameContext();
@@ -99,16 +131,16 @@ const Cell = ({ idx }: { idx: number }) => {
       case 'Y':
       case 'Z':
         dispatch({ type: 'input-letter', idx, letter: e.key });
-        dispatch({ type: 'move-focus', idx, direction: 'right' })
+        dispatch({ type: 'move-focus', idx, direction: 'next' })
         return;
       case 'Backspace':
         dispatch({ type: 'input-letter', idx, letter: '' });
-        dispatch({ type: 'move-focus', idx, direction: 'left' })
+        dispatch({ type: 'move-focus', idx, direction: 'previous' })
         return
       case ' ':
       case 'Space':
         dispatch({ type: 'input-letter', idx, letter: '' });
-        dispatch({ type: 'move-focus', idx, direction: 'right' })
+        dispatch({ type: 'move-focus', idx, direction: 'next' })
         return
       case 'ArrowLeft':
         dispatch({ type: 'move-focus', idx, direction: 'left' })
@@ -133,7 +165,7 @@ const Cell = ({ idx }: { idx: number }) => {
 
   const answer = state.cells[idx];
   const letter = state.letters[idx];
-  const correct = answer === letter;
+  const selected = !!state.selectedWord && state.words[state.selectedWord as keyof typeof state.words].range.includes(idx);
 
   if (answer === ".")
     return <BlankCell />;
@@ -144,7 +176,7 @@ const Cell = ({ idx }: { idx: number }) => {
       value={letter}
       onKeyDown={onKeyDown}
       onFocus={onFocus}
-      className={clsx("border aspect-square text-3xl text-center", correct && "bg-green-100")}
+      className={clsx("border aspect-square text-3xl text-center", selected && "bg-yellow-100")}
     />
   );
 };

@@ -23,12 +23,15 @@ export const INITIAL_GAME_STATE = {
         },
     },
     selectedInput: 0,
+    selectedWord: undefined as undefined | string,
+    selectedWordDirection: 'across' as 'across' | 'down',
 };
 export type GameState = typeof INITIAL_GAME_STATE;
 export type GameAction =
     { type: 'input-letter', idx: number; letter: string; }
     | { type: 'input-focused', idx: number }
-    | { type: 'move-focus', idx: number; direction: 'up' | 'right' | 'down' | 'left' }
+    | { type: 'move-focus', idx: number; direction: 'up' | 'right' | 'down' | 'left' | 'next' | 'previous' }
+    | { type: 'select-word', key: string }
 
 export type Dispatch = (state: GameState, action: GameAction) => GameState;
 const reducer: Dispatch = (state, action) => {
@@ -43,9 +46,12 @@ const reducer: Dispatch = (state, action) => {
         }
     }
     if (action.type === 'input-focused') {
+        const firstMatchingWordEntry = Object.entries(state.words).find(([_key, word]) => word.range.includes(action.idx));
         return {
             ...state,
             selectedInput: action.idx,
+            selectedWord: firstMatchingWordEntry && firstMatchingWordEntry[0],
+            selectedWordDirection: firstMatchingWordEntry && firstMatchingWordEntry[1].range[1] - firstMatchingWordEntry[1].range[0] === 1 ? 'across' : 'down',
         }
     }
     if (action.type === 'move-focus') {
@@ -58,11 +64,27 @@ const reducer: Dispatch = (state, action) => {
             selectedInput -= 5;
         } else if (action.direction === 'down') {
             selectedInput += 5;
+        } else if (action.direction === 'next') {
+            selectedInput += state.selectedWordDirection === 'across' ? 1 : 5;
+        } else if (action.direction === 'previous') {
+            selectedInput -= state.selectedWordDirection === 'across' ? 1 : 5;
         }
         return {
             ...state,
             selectedInput,
         };
+    }
+    if (action.type === 'select-word') {
+        if (!(action.key in state.words)) return state;
+        const word = state.words[action.key as keyof typeof state.words];
+        const selectedInput = word.range[0];
+        const selectedWordDirection = word.range[1] - word.range[0] === 1 ? 'across' : 'down';
+        return {
+            ...state,
+            selectedWord: action.key,
+            selectedInput,
+            selectedWordDirection,
+        }
     }
     return state;
 }
