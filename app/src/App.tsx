@@ -76,7 +76,7 @@ const Crossword = () => {
 
   return (
     <div className='relative'>
-      <div className="absolute top-0 left-0 grid grid-cols-5 grid-rows-5 -z-10">
+      <div className="w-full absolute top-0 left-0 grid grid-cols-5 grid-rows-5 -z-10">
         {cellStartNums.map((num, idx) => <CellBackground idx={idx}>{num}</CellBackground>)}
       </div>
       <div className="grid grid-cols-5 grid-rows-5">
@@ -92,7 +92,7 @@ const CellBackground = ({ idx, children }: PropsWithChildren<{ idx: number }>) =
 
   return (
     <span
-      className={clsx("aspect-square h-20 px-1", selected ? "bg-yellow-100" : null)}
+      className={clsx("aspect-square px-1", selected ? "bg-yellow-100" : null)}
     >
       {children}
     </span>
