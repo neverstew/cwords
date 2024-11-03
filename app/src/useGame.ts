@@ -58,12 +58,16 @@ const reducer: Dispatch = (state, action) => {
         }
     }
     if (action.type === 'input-focused') {
-        const firstMatchingWordEntry = Object.entries(state.words).find(([_key, word]) => word.range.includes(action.idx));
+        const word = state.words[state.selectedWord as keyof typeof state.words];
+        const selectedWordKeyValue = 
+            word && word.range.includes(action.idx)
+                ? [state.selectedWord!, word] as const
+                : Object.entries(state.words).find(([_key, word]) => word.range.includes(action.idx));
         return {
             ...state,
             selectedInput: action.idx,
-            selectedWord: firstMatchingWordEntry && firstMatchingWordEntry[0],
-            selectedWordDirection: firstMatchingWordEntry && firstMatchingWordEntry[1].range[1] - firstMatchingWordEntry[1].range[0] === 1 ? 'across' : 'down',
+            selectedWord: selectedWordKeyValue && selectedWordKeyValue[0],
+            selectedWordDirection: selectedWordKeyValue && selectedWordKeyValue[1].range[1] - selectedWordKeyValue[1].range[0] === 1 ? 'across' : 'down',
         }
     }
     if (action.type === 'move-focus') {
