@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useEffect, useReducer } from "react";
 
 const puzzle = `
   p a p e r
@@ -59,7 +59,7 @@ const reducer: Dispatch = (state, action) => {
     }
     if (action.type === 'input-focused') {
         const word = state.words[state.selectedWord as keyof typeof state.words];
-        const selectedWordKeyValue = 
+        const selectedWordKeyValue =
             word && word.range.includes(action.idx)
                 ? [state.selectedWord!, word] as const
                 : Object.entries(state.words).find(([_key, word]) => word.range.includes(action.idx));
@@ -106,5 +106,21 @@ const reducer: Dispatch = (state, action) => {
 }
 
 export const useGame = () => {
-    return useReducer(reducer, INITIAL_GAME_STATE)
+    let storedState: typeof INITIAL_GAME_STATE;
+    try {
+        const parsedState = JSON.parse(window.localStorage.getItem('state')!) as typeof INITIAL_GAME_STATE
+        if (parsedState.puzzle !== INITIAL_GAME_STATE.puzzle) throw "New game";
+        storedState = parsedState || INITIAL_GAME_STATE;
+    } catch {
+        storedState = INITIAL_GAME_STATE;
+    }
+
+    const game = useReducer(reducer, storedState);
+
+    const [state] = game;
+    useEffect(() => {
+        window.localStorage.setItem('state', JSON.stringify(state))
+    }, [state])
+
+    return game;
 }
