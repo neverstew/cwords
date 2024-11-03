@@ -107,6 +107,8 @@ const Cell = ({ idx }: { idx: number }) => {
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     console.debug(e.key)
 
+    if (e.metaKey) return;
+
     switch (e.key) {
       case 'a':
       case 'b':
