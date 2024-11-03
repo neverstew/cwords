@@ -50,10 +50,11 @@ const Words = () => {
 }
 
 const Word = ({ id, word }: { id: keyof GameState['words'], word: GameState['words'][keyof GameState['words']] }) => {
-  const [, dispatch] = useGameContext();
+  const [state, dispatch] = useGameContext();
+  const classes = clsx(id === state.selectedWord && "font-bold");
 
   return (
-    <div>
+    <div className={classes}>
       {id}: <button onClick={() => dispatch({ type: 'select-word', key: id })}>{word.clue}</button>
     </div>
   )
@@ -153,6 +154,11 @@ const Cell = ({ idx }: { idx: number }) => {
         return;
       case 'ArrowDown':
         dispatch({ type: 'move-focus', idx, direction: 'down' })
+        return;
+      case 'Tab':
+        const direction = e.shiftKey ? 'previous' : 'next';
+        dispatch({ type: 'move-focus', idx, direction })
+        e.preventDefault();
         return;
       default:
         return;
