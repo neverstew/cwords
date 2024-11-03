@@ -10,7 +10,7 @@ const puzzle = `
 
 export const INITIAL_GAME_STATE = {
     puzzle,
-    cells: puzzle.trim().split(/\s+/),
+    cells: puzzle.trim().split(/\s+/).map(c => c.toUpperCase()),
     letters: new Array(25).fill(''),
     words: {
         a1: {
@@ -51,7 +51,7 @@ const reducer: Dispatch = (state, action) => {
 
     if (action.type === "input-letter") {
         const letters = [...state.letters];
-        letters[action.idx] = action.letter;
+        letters[action.idx] = action.letter.toUpperCase();
         return {
             ...state,
             letters,
