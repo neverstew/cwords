@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { KeyboardEvent, useEffect, useRef } from 'react';
+import { KeyboardEvent, PropsWithChildren, useEffect, useRef } from 'react';
 import { GameState, useGame } from './useGame';
 import { GameContextProvider, useGameContext } from "./useGameContext";
 
@@ -62,13 +62,39 @@ const Word = ({ id, word }: { id: keyof GameState['words'], word: GameState['wor
 
 const Crossword = () => {
   const [state] = useGameContext();
+  const cellStartNums =
+    new Array(25)
+      .fill(null)
+      .map((_, idx) =>
+        Object.entries(state.words)
+          .find(([_key, word]) => word.range[0] === idx)
+          ?.[0].slice(1)
+      )
 
   return (
-    <div className="grid grid-cols-5 grid-rows-5">
-      {state.cells.map((_, i) => <Cell key={i} idx={i} />)}
+    <div className='relative'>
+      <div className="absolute top-0 left-0 grid grid-cols-5 grid-rows-5 -z-10">
+        {cellStartNums.map((num, idx) => <CellBackground idx={idx}>{num}</CellBackground>)}
+      </div>
+      <div className="grid grid-cols-5 grid-rows-5">
+        {state.cells.map((_, i) => <Cell key={i} idx={i} />)}
+      </div>
     </div>
   );
 };
+
+const CellBackground = ({ idx, children }: PropsWithChildren<{ idx: number }>) => {
+  const [state] = useGameContext();
+  const selected = !!state.selectedWord && state.words[state.selectedWord as keyof typeof state.words].range.includes(idx);
+
+  return (
+    <span
+      className={clsx("aspect-square h-20 px-1", selected ? "bg-yellow-100" : null)}
+    >
+      {children}
+    </span>
+  )
+}
 
 const Cell = ({ idx }: { idx: number }) => {
   const [state, dispatch] = useGameContext();
@@ -171,7 +197,6 @@ const Cell = ({ idx }: { idx: number }) => {
 
   const answer = state.cells[idx];
   const letter = state.letters[idx];
-  const selected = !!state.selectedWord && state.words[state.selectedWord as keyof typeof state.words].range.includes(idx);
 
   if (answer === ".")
     return <BlankCell />;
@@ -182,7 +207,7 @@ const Cell = ({ idx }: { idx: number }) => {
       value={letter}
       onKeyDown={onKeyDown}
       onFocus={onFocus}
-      className={clsx("border aspect-square text-3xl text-center", selected && "bg-yellow-100")}
+      className="border aspect-square text-3xl text-center bg-white bg-opacity-0"
     />
   );
 };
