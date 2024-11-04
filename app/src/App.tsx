@@ -17,16 +17,28 @@ const App = () => {
   );
 }
 
-const Header = () => (
-  <header className="h-20 shadow-md p-4 flex items-center">
-    <h1>cwords</h1>
-  </header>
-);
+const Header = () => {
+  const [state] = useGameContext();
+
+  return (
+    <header className="h-20 shadow-md flex items-center">
+      <div className='hidden md:block p-4'>
+        <h1>cwords</h1>
+      </div>
+      <div className='md:hidden p-2 grow'>
+        {
+          state.selectedWord
+            ? <SelectedWord />
+            : <h1>cwords</h1>
+        }
+      </div>
+    </header>
+  )
+};
 
 const Main = () => (
   <main className="mx-auto p-6 max-w-md sticky top-0 bg-white">
     <Crossword />
-    <SelectedWord />
   </main>
 );
 
@@ -228,7 +240,7 @@ const SelectedWord = () => {
   const word = state.words[state.selectedWord as keyof typeof state.words];
 
   return (
-    <div className="flex-col sm:hidden [@media(min-height:500px)]:hidden">
+    <div className="flex-col">
       <Word id={state.selectedWord as keyof typeof state.words} word={word} />
       <div className="flex justify-between gap-4">
         <button onClick={() => dispatch({ type: 'select-relative-word', direction: 'previous' })} className="text-start text-sm sm:text-md md:text-lg">{'<'} prev</button>
