@@ -24,7 +24,7 @@ export const INITIAL_GAME_STATE = {
             counts: '(4)',
         },
         a5: {
-            clue: "Fight a round here (or there?)",
+            clue: "Fight here (or there?)",
             range: [20, 21, 22, 23, 24],
             counts: '(5)',
         },
