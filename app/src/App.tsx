@@ -21,7 +21,7 @@ const Header = () => {
   const [state] = useGameContext();
 
   return (
-    <header className="h-20 shadow-md flex items-center">
+    <header className="h-20 shadow-md flex items-center md:sticky md:top-0">
       <div className='hidden md:block p-4'>
         <h1>cwords</h1>
       </div>
