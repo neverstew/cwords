@@ -44,6 +44,7 @@ export type GameAction =
     | { type: 'input-focused', idx: number }
     | { type: 'move-focus', idx: number; direction: 'up' | 'right' | 'down' | 'left' | 'next' | 'previous' }
     | { type: 'select-word', key: string }
+    | { type: 'select-relative-word', direction: 'next' | 'previous' }
 
 export type Dispatch = (state: GameState, action: GameAction) => GameState;
 const reducer: Dispatch = (state, action) => {
@@ -98,6 +99,24 @@ const reducer: Dispatch = (state, action) => {
         return {
             ...state,
             selectedWord: action.key,
+            selectedInput,
+            selectedWordDirection,
+        }
+    }
+    if (action.type === 'select-relative-word') {
+        if (!state.selectedWord) return state 
+        const thisWordIdx = Object.keys(state.words).indexOf(state.selectedWord);
+        const selectedWordIdx = thisWordIdx + (action.direction === 'next' ? 1 : -1);
+        const selectedWord = Object.keys(state.words)[selectedWordIdx]
+        if (!selectedWord) return state;
+
+        const word = state.words[selectedWord as keyof typeof state.words];
+        const selectedInput = word.range[0];
+        const selectedWordDirection = word.range[1] - word.range[0] === 1 ? 'across' : 'down';
+ 
+        return {
+            ...state,
+            selectedWord,
             selectedInput,
             selectedWordDirection,
         }

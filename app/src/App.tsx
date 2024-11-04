@@ -26,11 +26,12 @@ const Header = () => (
 const Main = () => (
   <main className="mx-auto p-6 max-w-md sticky top-0 bg-white">
     <Crossword />
+    <SelectedWord />
   </main>
 );
 
 const Aside = () => (
-  <aside className='p-6'>
+  <aside className='p-6 hidden [@media(min-height:500px)]:block'>
     <nav className='space-y-2'>
       <Words />
     </nav>
@@ -219,5 +220,22 @@ const Cell = ({ idx }: { idx: number }) => {
 };
 
 const BlankCell = () => <div className="bg-black border aspect-square" />;
+
+const SelectedWord = () => {
+  const [state, dispatch] = useGameContext();
+
+  if (!state.selectedWord) return null;
+  const word = state.words[state.selectedWord as keyof typeof state.words];
+
+  return (
+    <div className="flex-col sm:hidden [@media(min-height:500px)]:hidden">
+      <Word id={state.selectedWord as keyof typeof state.words} word={word} />
+      <div className="flex justify-between gap-4">
+        <button onClick={() => dispatch({ type: 'select-relative-word', direction: 'previous' })} className="text-start text-sm sm:text-md md:text-lg">{'<'} prev</button>
+        <button onClick={() => dispatch({ type: 'select-relative-word', direction: 'next' })} className="text-start text-sm sm:text-md md:text-lg">next {'>'}</button>
+      </div>
+    </div>
+  )
+}
 
 export default App
