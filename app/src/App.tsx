@@ -118,7 +118,7 @@ const Cell = ({ idx }: { idx: number }) => {
   const ref = useRef<HTMLInputElement>(null);
 
   const onFocus = () => dispatch({ type: 'input-focused', idx })
-  const onKeyUp = (e: KeyboardEvent<HTMLInputElement>) => {
+  const onInput = (e: KeyboardEvent<HTMLInputElement>) => {
     console.debug(e.key)
 
     if (e.metaKey) return;
@@ -224,7 +224,7 @@ const Cell = ({ idx }: { idx: number }) => {
     <input
       ref={ref}
       value={letter}
-      onKeyUp={onKeyUp}
+      onInput={onInput}
       onFocus={onFocus}
       className="border aspect-square text-3xl text-center bg-white bg-opacity-0"
     />
