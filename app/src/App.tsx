@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { KeyboardEvent, PropsWithChildren, useEffect, useRef } from 'react';
+import { ChangeEventHandler, KeyboardEvent, PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { GameState, useGame } from './useGame';
 import { GameContextProvider, useGameContext } from "./useGameContext";
 
@@ -124,65 +124,9 @@ const Cell = ({ idx }: { idx: number }) => {
     if (e.metaKey) return;
 
     switch (e.key) {
-      case 'a':
-      case 'b':
-      case 'c':
-      case 'd':
-      case 'e':
-      case 'f':
-      case 'g':
-      case 'h':
-      case 'i':
-      case 'j':
-      case 'k':
-      case 'l':
-      case 'm':
-      case 'n':
-      case 'o':
-      case 'p':
-      case 'q':
-      case 'r':
-      case 's':
-      case 't':
-      case 'u':
-      case 'v':
-      case 'w':
-      case 'x':
-      case 'y':
-      case 'z':
-      case 'A':
-      case 'B':
-      case 'C':
-      case 'D':
-      case 'E':
-      case 'F':
-      case 'G':
-      case 'H':
-      case 'I':
-      case 'J':
-      case 'K':
-      case 'L':
-      case 'M':
-      case 'N':
-      case 'O':
-      case 'P':
-      case 'Q':
-      case 'R':
-      case 'S':
-      case 'T':
-      case 'U':
-      case 'V':
-      case 'W':
-      case 'X':
-      case 'Y':
-      case 'Z':
-        dispatch({ type: 'input-letter', idx, letter: e.key });
-        dispatch({ type: 'move-focus', idx, direction: 'next' })
-        return;
       case 'Backspace':
-        dispatch({ type: 'input-letter', idx, letter: '' });
-        dispatch({ type: 'move-focus', idx, direction: 'previous' })
-        return
+        if (e.currentTarget.value === '') dispatch({ type: 'move-focus', idx, direction: 'previous' });
+        return;
       case ' ':
       case 'Space':
         dispatch({ type: 'input-letter', idx, letter: '' });
@@ -210,6 +154,20 @@ const Cell = ({ idx }: { idx: number }) => {
     }
   }
 
+  const onChange: ChangeEventHandler<HTMLInputElement> = (e) => {
+    const chars = e.target.value.trim().split('');
+    if (chars.length === 0) {
+      dispatch({ type: 'input-letter', idx, letter: '' });
+      return
+    }
+
+    const finalChar = chars[chars.length - 1];
+    if (!finalChar.match(/[a-zA-Z ]/)) return;
+
+    dispatch({ type: 'input-letter', idx, letter: finalChar.trim() });
+    dispatch({ type: 'move-focus', idx, direction: 'next' })
+  }
+
   useEffect(() => {
     if (state.selectedInput === idx) ref.current?.focus();
   }, [state.selectedInput])
@@ -225,6 +183,7 @@ const Cell = ({ idx }: { idx: number }) => {
       ref={ref}
       value={letter}
       onKeyDown={onKeyDown}
+      onChange={onChange}
       onFocus={onFocus}
       className="border aspect-square text-3xl text-center bg-white bg-opacity-0"
     />
