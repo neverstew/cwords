@@ -9,7 +9,7 @@ const App = () => {
   return (
     <GameContextProvider value={game}>
       <Header />
-      <div className='flex md:grid grid-cols-2'>
+      <div className='flex-col md:grid grid-cols-2 py-2 min-w-64'>
         <Main />
         <Aside />
       </div>
@@ -24,14 +24,14 @@ const Header = () => (
 );
 
 const Main = () => (
-  <main className="mx-auto p-6 max-w-md">
+  <main className="mx-auto p-6 max-w-md sticky top-0 bg-white">
     <Crossword />
   </main>
 );
 
 const Aside = () => (
   <aside className='p-6'>
-    <nav>
+    <nav className='space-y-2'>
       <Words />
     </nav>
   </aside>
@@ -58,7 +58,8 @@ const Word = ({ id, word }: { id: keyof GameState['words'], word: GameState['wor
 
   return (
     <div className={classes}>
-      {id}: <button onClick={() => dispatch({ type: 'select-word', key: id })}>{word.clue}</button>
+      <h3 className='uppercase text-xs sm:text-sm md:text-md'>{id}</h3>
+      <button className="text-start text-sm sm:text-md md:text-lg" onClick={() => dispatch({ type: 'select-word', key: id })}>{word.clue}</button>
     </div>
   )
 }
