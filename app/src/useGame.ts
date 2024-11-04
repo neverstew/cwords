@@ -16,22 +16,27 @@ export const INITIAL_GAME_STATE = {
         a1: {
             clue: "Money rag",
             range: [0, 1, 2, 3, 4],
+            counts: '(5)',
         },
         a4: {
             clue: "Endless foot starts delicious nosh",
             range: [11, 12, 13, 14],
+            counts: '(4)',
         },
         a5: {
             clue: "Fight a round here (or there?)",
             range: [20, 21, 22, 23, 24],
+            counts: '(5)',
         },
         d2: {
             clue: "Pic of vietnamese noodle recipient",
             range: [2, 7, 12, 17, 22],
+            counts: '(5)',
         },
         d3: {
             clue: "Richard's explicit diagram began as one colour",
             range: [4, 9, 14],
+            counts: '(3)',
         }
     },
     selectedInput: 0,
