@@ -1,6 +1,6 @@
 {
   "name": "cwords",
-  "module": "index.ts",
+  "module": "scripts/generate-cwords.ts",
   "type": "module",
   "devDependencies": {
     "@types/bun": "latest"
@@ -9,6 +9,8 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "debug": "bun run --inspect-wait"
+    "debug": "bun run --inspect-wait",
+    "generate": "bun run scripts/generate-cword.ts",
+    "init": "bun run scripts/insert-words.ts"
   }
 }

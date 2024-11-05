@@ -1,6 +1,6 @@
 import { Database } from 'bun:sqlite'
 
-const db = new Database("scripts/words.db");
+const db = new Database("words.db");
 
 const [_bun, _file, wordsFile] = process.argv;
 if (!wordsFile) throw "Pass a filename with a list of words";
