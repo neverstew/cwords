@@ -1,15 +1,22 @@
-// require 'sqlite3'
 import { Database } from 'bun:sqlite'
 
 const db = new Database("scripts/words.db");
 
-const inputFile = Bun.file("1k-up-to-5.txt");
-const content = await inputFile.text();
-const words = content.split("\n").map(l => l.trim());
+const [_bun, _file, wordsFile] = process.argv;
+if (!wordsFile) throw "Pass a filename with a list of words";
+const inputFile = Bun.file(wordsFile);
 
-// Create a table with one column for each cell
+const content = await inputFile.text();
+const words =
+  content
+    .split("\n")
+    .map(l => l.trim())
+    .filter(word => word.length <= 5 && word.length >= 3);
+
+
+await db.run(`drop table if exists words;`);
 await db.run(`
-  create table if not exists words (
+  create table words (
     a, b, c, d, e,
     f, g, h, i, j,
     k, l, m, n, o,
