@@ -22,7 +22,10 @@ Right now, it can produce a 5x5 grid only.
 We've already pulled some words from the internet and shoved them into the
 `words.db` file. This is an SQLite database file.
 
-To regenerate this, grab a list of words, edit and run [insert-words.rb](./insert-words.rb).
+To regenerate this, grab a list of words, edit and run 
+```sh
+bun run init $path_to_words_file
+```
 
 ## Creating crossword grids
 
@@ -41,8 +44,8 @@ Each space in the grid denotes a letter (or no letter, denoted with a `.`) and w
 When a space is associated with multiple words, use a slash to separate them. `a1/d2` is associated with both 1 Across and 2 Down.
 
 You can then generate a new crossword grid by running
-```
-rb gen-constrained-words.rb <your-structure-file>
+```sh
+bun run generate $path_to_structure_file
 ```
 
 Given the above structure, you would see
@@ -71,4 +74,4 @@ a3 a3 d2/a3 a3 a3
 a3: about
 ```
 
-Right now, you have to then manually change the offset in the query in `gen-constrained-words.rb` to see a different result.
+Right now, you have to then manually change the offset in the query in `scripts/generate-cword.ts` to see a different result.
