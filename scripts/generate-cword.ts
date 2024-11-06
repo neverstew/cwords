@@ -107,8 +107,7 @@ const constraints =
     "-- table constraints",
     (wordKeys.map(key => tableConstraints(key)[0])).join("\n and "),
     "-- join constraints",
-    "and ",
-    wordKeys.map(key => joinConstraints(key)).join("\n and "),
+    "and ", wordKeys.map(key => joinConstraints(key)).join("\n and "),
   ].join("\n");
 
 const query = `
