@@ -1,11 +1,11 @@
 import { useEffect, useReducer } from "react";
 
 const puzzle = `
-  p a p e r
-  . . h . e
-  . f o o d
-  . . t . .
-  a b o u t
+c a s e s
+o . h . i
+l e a s t
+o . l . e
+r u l e s
 `;
 
 export const INITIAL_GAME_STATE = {
@@ -14,29 +14,34 @@ export const INITIAL_GAME_STATE = {
     letters: new Array(25).fill(''),
     words: {
         a1: {
-            clue: "Money rag",
+            clue: "Wine boxes found in gutted castles",
             range: [0, 1, 2, 3, 4],
             counts: '(5)',
         },
         a4: {
-            clue: "Endless foot starts delicious nosh",
-            range: [11, 12, 13, 14],
-            counts: '(4)',
+            clue: "Returning, gutted castle's remains enclose tumultuous sea at lowest point",
+            range: [10, 11, 12, 13, 14],
+            counts: '(5)',
         },
         a5: {
-            clue: "Fight here (or there?)",
+            clue: "Leaders, without a right, make laws",
             range: [20, 21, 22, 23, 24],
             counts: '(5)',
         },
+        d1: {
+            clue: "Dog's accessory: less LA, more first outing - that's shade.",
+            range: [0, 5, 10, 15, 20],
+            counts: '(5)',
+        },
         d2: {
-            clue: "Pic of vietnamese noodle recipient",
+            clue: "Rotating large gathering rooms will exist in the future",
             range: [2, 7, 12, 17, 22],
             counts: '(5)',
         },
         d3: {
-            clue: "Richard's explicit diagram began as one colour",
-            range: [4, 9, 14],
-            counts: '(3)',
+            clue: "Hears references to locations",
+            range: [4, 9, 14, 19, 24],
+            counts: '(5)',
         }
     },
     selectedInput: 0,
