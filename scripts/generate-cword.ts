@@ -3,7 +3,7 @@ import { Database } from 'bun:sqlite'
 const db = new Database("words.db");
 const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
 
-const [_bun, _file, structureFile] = process.argv;
+const [_bun, _file, structureFile, offset = 0] = process.argv;
 if (!structureFile) throw "Pass a filename with a structure";
 
 const inputFile = Bun.file(structureFile);
@@ -134,6 +134,7 @@ const query = `
   where
   ${constraints}
   limit 1
+  offset ${offset}
 `
 await Bun.write("latest-query.sql", query)
 
