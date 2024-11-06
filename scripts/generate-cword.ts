@@ -40,10 +40,7 @@ const parseJoinsFromFile = () => {
       if (wordKeys.length <= 1) return;
 
       wordKeys.forEach((wordKey, j) => {
-        const lowerBound = 0
-        const upperBound = Math.max(0, j - 1);
         const joinLocations = wordKeys
-          .slice(lowerBound, upperBound + 1)
           .filter(key => key !== wordKey)
           .map(key => [key, letter] as [string, string])
         joins[wordKey] = joins[wordKey] || []
@@ -71,79 +68,59 @@ const words = await parseWordsFromFile()
 const wordConstraints = await parseConstraintsFromFile()
 const joins = await parseJoinsFromFile()
 
-const constraints = (tableName: string, args: Record<string, string>) => {
+const wordKeys = Object.keys(words);
+
+const tableConstraints = (wordKey: string) => {
+  const gridLetters = words[wordKey];
+  const word = wordConstraints[wordKey] || ''
+  const wordLetters = word.split('')
+  const wordLetterPositions = Object.fromEntries(gridLetters.map((gridLetter, idx) => {
+    const letter = wordLetters[idx] || "__any__";
+    return [gridLetter, letter]
+  }))
+
   const conditions = []
   const values = []
   for (const letter of letters) {
-    const value = args[letter]
+    const value = wordLetterPositions[letter]
     if (value === "__any__") {
-      conditions.push(`${tableName}.\"${letter}\" is not null`)
+      conditions.push(`${wordKey}.\"${letter}\" is not null`)
     } else if (value) {
-      conditions.push(`${tableName}.\"${letter}\" = ?`)
+      conditions.push(`${wordKey}.\"${letter}\" = ?`)
       values.push(value);
     } else {
-      conditions.push(`${tableName}.\"${letter}\" is null`)
+      conditions.push(`${wordKey}.\"${letter}\" is null`)
     }
   }
 
   return [conditions.join(' and '), values] as const
 }
 
-let queryValues: any[] = []
-const select = (wordKey: string) => `select * from words as ${wordKey}`
-const where = (wordKey: string) => {
-  const grid_letters = words[wordKey]
-
-  const word = wordConstraints[wordKey] || ''
-  const word_letters = word.split('')
-
-  const letters = Object.fromEntries(grid_letters.map((grid_letter, idx) => {
-    const letter = word_letters[idx] || "__any__";
-    return [grid_letter, letter]
-  }))
-
-  const [sql, values] = constraints(wordKey, letters)
-  queryValues = queryValues.concat(...values)
-
-  return `where ${sql}`
+const joinConstraints = (wordKey: string) => {
+  return joins[wordKey]
+    .map(([key, letter]) => `${wordKey}.\"${letter}\" = ${key}.\"${letter}\"`)
+    .join(' and ')
 }
-const join = (thisWordKey: string, joins: [string, string][]) => {
-  const idx_this = Object.keys(words).indexOf(thisWordKey)
-  const prev_word_key = Object.keys(words)[idx_this - 1]
 
-  const joinConditions =
-    joins.map(([other_word_key, letter]) => {
-      const idx_other = Object.keys(words).indexOf(other_word_key)
-      const difference = idx_this - idx_other
-      const relative_cte_spacing = difference > 1 ? `:${difference - 1}` : ''
-      return `${prev_word_key}."${letter}${relative_cte_spacing}" = ${thisWordKey}.${letter}`
-    })
-      .join(' and ')
-
-  return `join ${prev_word_key} on ${joinConditions}`
-}
-const cte = (wordKey: string) => {
-  const idx_this = Object.keys(words).indexOf(wordKey);
-  return `
-${idx_this === 0 ? 'with ' : ', '}${wordKey} as (
-  ${select(wordKey)}
-  ${idx_this == 0 ? '' : join(wordKey, joins[wordKey])}
-  ${where(wordKey)}
-)
-  `
-}
-const ctes = Object.keys(words).map(word_key => cte(word_key)).join('')
+const constraints = 
+  [
+    "-- table constraints",
+    (wordKeys.map(key => tableConstraints(key)[0])).join("\n and "),
+    "-- join constraints",
+    "and ",
+    wordKeys.map(key => joinConstraints(key)).join("\n and "),
+  ].join("\n");
 
 const query = `
-  ${ctes}
-  select *
-  from ${Object.keys(words).at(-1)}
+  select ${wordKeys.flatMap((key) => letters.map(letter => `"${key}"."${letter}" as ${key}_${letter}`))}
+  from ${wordKeys.map(wordKey => `words as ${wordKey}`).join(', ')}
+  where
+  ${constraints}
   limit 1
-  offset 25
 `
 await Bun.write("latest-query.sql", query)
 
-const rows = await db.query(query).all(...queryValues) as Record<string, string | null>[];
+const rows = await db.query(query).all(...wordKeys.flatMap(key => tableConstraints(key)[1])) as Record<string, string | null>[];
 
 function* chunks<T>(arr: T[], n: number) {
   for (let i = 0; i < arr.length; i += n) {
@@ -151,26 +128,27 @@ function* chunks<T>(arr: T[], n: number) {
   }
 }
 
-const printCrossword = (result: (string|null)[]) => {
-  const finalTable = Array.from(chunks(result, 25)).reduce((acc, chunk) => {
-    chunk.forEach((letter, i) => {
-      acc[i] = acc[i] || letter;
-    })
-    return acc;
-  }, new Array(25).fill(null))
+const printCrossword = (result: typeof rows[0]) => {
+  const finalTable = Object.fromEntries(letters.map(key => [key, null as null | string]));
+  for (const [key, value] of Object.entries(result)) {
+    const [_wordKey, letter] = key.split('_')
+    finalTable[letter] = finalTable[letter] || value;
+  }
 
-  debugger;
-  Array.from(chunks(finalTable.map(letter => letter || '.'), 5))
+  Array.from(chunks(Object.values(finalTable).map(letter => letter || '.'), 5))
     .forEach(row => console.info(row.join(' ')))
+
   console.info("")
-  Object.keys(words)
+
+  wordKeys
     .sort()
     .forEach(key => {
+      debugger;
       const word = words[key]
-        .map(grid_letter => finalTable[letters.indexOf(grid_letter)])
+        .map(gridLetter => finalTable[gridLetter])
         .join('')
       console.info(`${key}: ${word}`)
     })
 }
 
-printCrossword(Object.values(rows[0]))
+printCrossword(rows[0])
