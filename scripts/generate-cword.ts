@@ -161,11 +161,10 @@ const printCrossword = (result: typeof rows[0]) => {
   wordKeys
     .sort()
     .forEach(key => {
-      debugger;
       const word = words[key]
         .map(gridLetter => finalTable[gridLetter])
         .join('')
-      console.info(`${key}: ${word}`)
+      console.info(`${key}: ${word} [${words[key].join(', ')}] [${words[key].map(l => letters.indexOf(l)).join(', ')}]`)
     })
 }
 
