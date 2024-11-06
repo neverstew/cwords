@@ -102,12 +102,30 @@ const joinConstraints = (wordKey: string) => {
     .join(' and ')
 }
 
+const joinedWord = (wordKey: string) => 
+  letters.map(letter => `COALESCE(${wordKey}.${letter}, '')`).join(' || ')
+
+const uniqueWordConstraints = () => {
+  const constraints = [];
+  for (let i = 0; i < wordKeys.length; i++) {
+    const thisKey = wordKeys[i];
+    for (let j = i + 1; j < wordKeys.length; j++) {
+      const nextKey = wordKeys[j];
+      constraints.push(`(${joinedWord(thisKey)}) <> (${joinedWord(nextKey)})`)
+    }
+  }
+
+  return constraints.join('\nand\n');
+}
+
 const constraints = 
   [
     "-- table constraints",
     (wordKeys.map(key => tableConstraints(key)[0])).join("\n and "),
     "-- join constraints",
     "and ", wordKeys.map(key => joinConstraints(key)).join("\n and "),
+    "--- unique word constraints",
+    "and ", uniqueWordConstraints(),
   ].join("\n");
 
 const query = `
