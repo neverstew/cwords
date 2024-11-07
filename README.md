@@ -8,7 +8,7 @@ If you squint at the problem of setting a crossword grid, it looks like a whole
 bunch of simultaneous equations that all relate to each other;
 word one overlaps with word two, which overlaps with word 3 etc.
 
-This is a great type of problem to through at database engines, which are very
+This is a great type of problem to throw at database engines, which are very
 well set up to find a set of answers, given a whole host of constraints.
 
 We create a database where the table has one column per space in the grid,
@@ -74,4 +74,10 @@ a3 a3 d2/a3 a3 a3
 a3: about
 ```
 
-Right now, you have to then manually change the offset in the query in `scripts/generate-cword.ts` to see a different result.
+### Getting another one
+If you don't like the words output, you can look for the next matching result by specifying an offset to the script. This will give you the next result, sorted alphabetically. e.g.
+```sh
+bun run generate $path_to_structure_file 43
+```
+
+There are usually many, many combinations. Don't be afraid of big numbers!
