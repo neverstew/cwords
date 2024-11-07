@@ -9,7 +9,7 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "debug": "bun run --inspect-wait",
+    "debug": "bun run --inspect-wait scripts/generate-cword.ts",
     "generate": "bun run scripts/generate-cword.ts",
     "init": "bun run scripts/insert-words.ts"
   }
