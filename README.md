@@ -32,16 +32,18 @@ bun run init $path_to_words_file
 You need to generate a structure file (there's an example already at [structure.txt](./structure.txt)). This describes the shape of the grid that you want.
 
 ```
-a1 a1 a1/d2 a1 a1
-.  .  d2    .  . 
-.  .  d2    .  .
-.  .  d2    .  .
-a3 a3 d2/a3 a3 a3
++ + + + +
+. . + . .
+. . + . .
+. . + . .
++ + + + +
 ```
 
-Each space in the grid denotes a letter (or no letter, denoted with a `.`) and which word(s) it is associated with. `a1` is the word for '1 Across', `d1` is the word for '1 Down'.
+Each space in the grid should be filled with one of:
 
-When a space is associated with multiple words, use a slash to separate them. `a1/d2` is associated with both 1 Across and 2 Down.
+* `.` for no letter
+* `+` for any letter
+* `a` (or b etc.) for a specific letter
 
 You can then generate a new crossword grid by running
 ```sh
@@ -50,28 +52,15 @@ bun run generate $path_to_structure_file
 
 Given the above structure, you would see
 ```
-y e a r s
-. . u . .
-. . d . .
-. . i . .
 a b o u t
+. . f . .
+. . f . .
+. . e . .
+a p r i l
 
-a1: years
-a3: about
-d2: audio
-```
-
-### Locking words
-
-If you like a word, you can "lock" it by specifying it below the structure 
-```
-a1 a1 a1/d2 a1 a1
-.  .  d2    .  . 
-.  .  d2    .  .
-.  .  d2    .  .
-a3 a3 d2/a3 a3 a3
-
-a3: about
+a1: about [a, b, c, d, e] [0, 1, 2, 3, 4]
+d2: offer [c, h, m, r, w] [2, 7, 12, 17, 22]
+a3: april [u, v, w, x, y] [20, 21, 22, 23, 24]
 ```
 
 ### Getting another one

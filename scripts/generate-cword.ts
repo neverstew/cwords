@@ -10,101 +10,152 @@ const inputFile = Bun.file(structureFile);
 const content = await inputFile.text();
 const lines = content.split("\n");
 
-const parseWordsFromFile = async () => {
-  const words: Record<string, string[]> = {}
-
-  lines
-    .slice(0, 5)
-    .flatMap(line => line.trim().split(/\s+/))
-    .forEach((numEntry, i) => {
-      const letter = letters[i]
-      const nums = numEntry.split('/')
-      for (const num of nums) {
-        if (num === '.') continue;
-        words[num] = (words[num] || [])
-        words[num].push(letter)
-      }
-    })
-
-  return Object.fromEntries(Object.entries(words).filter(([, value]) => value.length > 1))
+const isDefined = <T>(x: T | undefined | null): x is T => {
+  return Boolean(x);
 }
 
-const parseJoinsFromFile = () => {
-  const joins: Record<string, [string, string][]> = {}
-  lines
-    .slice(0, 5)
-    .flatMap(line => line.trim().split(/\s+/))
-    .forEach((entry, i) => {
-      const letter = letters[i]
-      const wordKeys = entry.split('/')
-      if (wordKeys.length <= 1) return;
+const cells = lines
+  .slice(0, 5)
+  .flatMap(line => line.trim().split(/\s+/));
 
-      wordKeys.forEach((wordKey, j) => {
-        const joinLocations = wordKeys
-          .filter(key => key !== wordKey)
-          .map(key => [key, letter] as [string, string])
-        joins[wordKey] = joins[wordKey] || []
-        for (const location of joinLocations) {
-          joins[wordKey].push(location)
-        }
-      })
-    })
-  return joins;
+const isAcrossStart = (idx: number) => {
+  const cell = cells[idx];
+  if (cell === '.') return false;
+
+  const onRightBorder = idx % 5 === 4
+  if (onRightBorder) return false;
+
+  const nextCell = cells[idx + 1];
+  if (nextCell === '.') return false;
+
+  const onLeftBorder = idx % 5 === 0
+  if (onLeftBorder) return cell !== '.';
+
+  const prevCell = cells[idx - 1];
+  return prevCell === '.';
 }
 
-const parseConstraintsFromFile = () => {
-  return Object.fromEntries(
-    lines
-      .slice(5)
-      .filter(line => line.length > 0)
-      .map(line => {
-        const [wordKey, word] = line.split(': ');
-        return [wordKey, word]
-      })
+const isDownStart = (idx: number) => {
+  const cell = cells[idx];
+  if (cell === '.') return false;
+
+  const onBottomBorder = idx >= 20;
+  if (onBottomBorder) return false;
+
+  const nextCell = cells[idx + 5];
+  if (nextCell === '.') return false
+
+  const onTopBorder = idx <= 4;
+  if (onTopBorder && cell !== '.') return true
+
+  const prevCell = cells[idx - 5];
+  return prevCell === '.'
+}
+
+const starts = new Set<number>();
+const wordStarts = cells
+  .map((_cell, idx) => {
+    const directions: ('a' | 'd')[] = []
+    if (isAcrossStart(idx)) directions.push('a')
+    if (isDownStart(idx)) directions.push('d')
+
+    if (directions.length > 0 ) starts.add(idx);
+    return { start: idx, directions }
+  })
+  .flatMap(({ start, directions }) =>
+    directions.map(direction =>({ start, direction }))
   )
-}
+  .filter(isDefined)
 
-const words = await parseWordsFromFile()
-const wordConstraints = await parseConstraintsFromFile()
-const joins = await parseJoinsFromFile()
+const wordsWithoutJoins = wordStarts
+  .map(({ start, direction }) => {
+    if (direction === 'a') {
+      const startPoint = start;
+      let currentPoint = start;
+      const pointInRow = startPoint % 5;
+      const pointsUntilEndOfRow = 5 - pointInRow;
+      const maxPoint = startPoint + pointsUntilEndOfRow
+      const range = [];
+      while (currentPoint < maxPoint) {
+        if (cells[currentPoint] === '.') break;
+        range.push(currentPoint);
+        currentPoint += 1;
+      }
+      return { start, direction, range };
+    } else {
+      const startPoint = start;
+      let currentPoint = start;
+      const pointInCol = Math.floor(startPoint / 5);
+      const pointsUntilEndOfCol = 5 - pointInCol;
+      const maxPoint = startPoint + pointsUntilEndOfCol * 5
+      const range = [];
+      while (currentPoint < maxPoint) {
+        if (cells[currentPoint] === '.') break;
+        range.push(currentPoint);
+        currentPoint += 5;
+      }
+      return { start, direction, range };
+    }
+  })
+  .map(word => {
+    const sortedStarts = Array.from(starts).sort((a, b) => a - b);
+    return {
+      ...word,
+      key: `${word.direction}${sortedStarts.indexOf(word.range[0]) + 1}`,
+      joins: [] as (readonly [string, number])[],
+    };
+  })
 
-const wordKeys = Object.keys(words);
+const words = wordsWithoutJoins
+  .map((word) => {
+    const joins = [];
+    for (const otherWord of wordsWithoutJoins) {
+      if (otherWord.key === word.key) continue;
+      for (const location of word.range) {
+        if (otherWord.range.includes(location)) joins.push([otherWord.key, location] as const);
+      }
+    }
+    word.joins = joins;
+    return word;
+  })
 
-const tableConstraints = (wordKey: string) => {
-  const gridLetters = words[wordKey];
-  const word = wordConstraints[wordKey] || ''
-  const wordLetters = word.split('')
-  const wordLetterPositions = Object.fromEntries(gridLetters.map((gridLetter, idx) => {
-    const letter = wordLetters[idx] || "__any__";
-    return [gridLetter, letter]
-  }))
+type Word = typeof words[number];
 
+const tableConstraints = (word: Word) => {
   const conditions = []
   const values = []
-  for (const letter of letters) {
-    const value = wordLetterPositions[letter]
-    if (value === "__any__") {
-      conditions.push(`${wordKey}.\"${letter}\" is not null`)
-    } else if (value) {
-      conditions.push(`${wordKey}.\"${letter}\" = ?`)
-      values.push(value);
+  for (let location = 0; location < letters.length; location++) {
+    const letter = letters[location];
+    if (!word.range.includes(location)){
+      conditions.push(`${word.key}.\"${letter}\" is null`)
+      continue;
+    }
+
+    const value = cells[location];
+    if (value === "+") {
+      conditions.push(`${word.key}.\"${letter}\" is not null`)
     } else {
-      conditions.push(`${wordKey}.\"${letter}\" is null`)
+      conditions.push(`${word.key}.\"${letter}\" = ?`)
+      values.push(value);
     }
   }
 
   return [conditions.join(' and '), values] as const
 }
 
-const joinConstraints = (wordKey: string) => {
-  return joins[wordKey]
-    .map(([key, letter]) => `${wordKey}.\"${letter}\" = ${key}.\"${letter}\"`)
+const joinConstraints = (word: Word) => {
+  return word.joins
+    .map(([key, location]) => {
+      const letter = letters[location];
+      return `${word.key}.\"${letter}\" = ${key}.\"${letter}\"`
+    })
     .join(' and ')
 }
 
-const joinedWord = (wordKey: string) => 
+const joinedWord = (wordKey: string) =>
   letters.map(letter => `COALESCE(${wordKey}.${letter}, '')`).join(' || ')
 
+const wordKeys = words.map(w => w.key);
 const uniqueWordConstraints = () => {
   const constraints = [];
   for (let i = 0; i < wordKeys.length; i++) {
@@ -118,19 +169,19 @@ const uniqueWordConstraints = () => {
   return constraints.join('\nand\n');
 }
 
-const constraints = 
+const constraints =
   [
     "-- table constraints",
-    (wordKeys.map(key => tableConstraints(key)[0])).join("\n and "),
+    (words.map(word => tableConstraints(word)[0])).join("\n and "),
     "-- join constraints",
-    "and ", wordKeys.map(key => joinConstraints(key)).join("\n and "),
+    "and ", words.map(word => joinConstraints(word)).join("\n and "),
     "--- unique word constraints",
     "and ", uniqueWordConstraints(),
   ].join("\n");
 
 const query = `
-  select ${wordKeys.flatMap((key) => letters.map(letter => `"${key}"."${letter}" as ${key}_${letter}`))}
-  from ${wordKeys.map(wordKey => `words as ${wordKey}`).join(', ')}
+  select ${words.flatMap(({ key }) => letters.map(letter => `"${key}"."${letter}" as ${key}_${letter}`))}
+  from ${words.map(({ key }) => `words as ${key}`).join(', ')}
   where
   ${constraints}
   limit 1
@@ -138,7 +189,8 @@ const query = `
 `
 await Bun.write("latest-query.sql", query)
 
-const rows = await db.query(query).all(...wordKeys.flatMap(key => tableConstraints(key)[1])) as Record<string, string | null>[];
+const queryValues = words.flatMap(word => tableConstraints(word)[1]);
+const rows = await db.query(query).all(...queryValues) as Record<string, string | null>[];
 
 function* chunks<T>(arr: T[], n: number) {
   for (let i = 0; i < arr.length; i += n) {
@@ -158,13 +210,11 @@ const printCrossword = (result: typeof rows[0]) => {
 
   console.info("")
 
-  wordKeys
-    .sort()
-    .forEach(key => {
-      const word = words[key]
-        .map(gridLetter => finalTable[gridLetter])
-        .join('')
-      console.info(`${key}: ${word} [${words[key].join(', ')}] [${words[key].map(l => letters.indexOf(l)).join(', ')}]`)
+  words
+    .forEach(word => {
+      const locationLetters = word.range.map(location => letters[location]);
+      const finalWord = locationLetters.map(letter => finalTable[letter]).join('')
+      console.info(`${word.key}: ${finalWord} [${locationLetters.join(', ')}] [${word.range.join(', ')}]`)
     })
 }
 
