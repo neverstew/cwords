@@ -1,34 +1,39 @@
 import { Database } from 'bun:sqlite'
+import { generateGridLetter } from '../src/gridLetters';
+import { parseFile } from '../src/structureFile';
+import { isDefined } from '../src/isDefined';
 
 const db = new Database("words.db");
-const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
 
 const [_bun, _file, structureFile, offset = 0] = process.argv;
 if (!structureFile) throw "Pass a filename with a structure";
 
-const inputFile = Bun.file(structureFile);
-const content = await inputFile.text();
-const lines = content.split("\n");
+const {
+  lines,
+  totalLetters,
+  height,
+  width,
+} = await parseFile(structureFile);
 
-const isDefined = <T>(x: T | undefined | null): x is T => {
-  return Boolean(x);
-}
+const allColumns = new Array(totalLetters)
+  .fill(null)
+  .map((_, i) => generateGridLetter(i, width))
 
 const cells = lines
-  .slice(0, 5)
+  .slice(0, height)
   .flatMap(line => line.trim().split(/\s+/));
 
 const isAcrossStart = (idx: number) => {
   const cell = cells[idx];
   if (cell === '.') return false;
 
-  const onRightBorder = idx % 5 === 4
+  const onRightBorder = idx % width === width - 1
   if (onRightBorder) return false;
 
   const nextCell = cells[idx + 1];
   if (nextCell === '.') return false;
 
-  const onLeftBorder = idx % 5 === 0
+  const onLeftBorder = idx % width === 0
   if (onLeftBorder) return cell !== '.';
 
   const prevCell = cells[idx - 1];
@@ -39,16 +44,16 @@ const isDownStart = (idx: number) => {
   const cell = cells[idx];
   if (cell === '.') return false;
 
-  const onBottomBorder = idx >= 20;
+  const onBottomBorder = idx >= (height - 1) * width;
   if (onBottomBorder) return false;
 
-  const nextCell = cells[idx + 5];
+  const nextCell = cells[idx + width];
   if (nextCell === '.') return false
 
-  const onTopBorder = idx <= 4;
+  const onTopBorder = idx <= (height - 1);
   if (onTopBorder && cell !== '.') return true
 
-  const prevCell = cells[idx - 5];
+  const prevCell = cells[idx - width];
   return prevCell === '.'
 }
 
@@ -72,8 +77,8 @@ const wordsWithoutJoins = wordStarts
     if (direction === 'a') {
       const startPoint = start;
       let currentPoint = start;
-      const pointInRow = startPoint % 5;
-      const pointsUntilEndOfRow = 5 - pointInRow;
+      const pointInRow = startPoint % width;
+      const pointsUntilEndOfRow = width - pointInRow;
       const maxPoint = startPoint + pointsUntilEndOfRow
       const range = [];
       while (currentPoint < maxPoint) {
@@ -86,13 +91,13 @@ const wordsWithoutJoins = wordStarts
       const startPoint = start;
       let currentPoint = start;
       const pointInCol = Math.floor(startPoint / 5);
-      const pointsUntilEndOfCol = 5 - pointInCol;
-      const maxPoint = startPoint + pointsUntilEndOfCol * 5
+      const pointsUntilEndOfCol = height - pointInCol;
+      const maxPoint = startPoint + pointsUntilEndOfCol * width
       const range = [];
       while (currentPoint < maxPoint) {
         if (cells[currentPoint] === '.') break;
         range.push(currentPoint);
-        currentPoint += 5;
+        currentPoint += width;
       }
       return { start, direction, range };
     }
@@ -124,8 +129,8 @@ type Word = typeof words[number];
 const tableConstraints = (word: Word) => {
   const conditions = []
   const values = []
-  for (let location = 0; location < letters.length; location++) {
-    const letter = letters[location];
+  for (let location = 0; location < totalLetters; location++) {
+    const letter = allColumns[location];
     if (!word.range.includes(location)){
       conditions.push(`${word.key}.\"${letter}\" is null`)
       continue;
@@ -146,14 +151,15 @@ const tableConstraints = (word: Word) => {
 const joinConstraints = (word: Word) => {
   return word.joins
     .map(([key, location]) => {
-      const letter = letters[location];
+      const letter = allColumns[location];
       return `${word.key}.\"${letter}\" = ${key}.\"${letter}\"`
     })
     .join(' and ')
 }
 
-const joinedWord = (wordKey: string) =>
-  letters.map(letter => `COALESCE(${wordKey}.${letter}, '')`).join(' || ')
+const joinedWord = (wordKey: string) => allColumns
+  .map(letter => `COALESCE(${wordKey}.${letter}, '')`)
+  .join(' || ')
 
 const wordKeys = words.map(w => w.key);
 const uniqueWordConstraints = () => {
@@ -180,7 +186,7 @@ const constraints =
   ].join("\n");
 
 const query = `
-  select ${words.flatMap(({ key }) => letters.map(letter => `"${key}"."${letter}" as ${key}_${letter}`))}
+  select ${words.flatMap(({ key }) => allColumns.map(letter => `"${key}"."${letter}" as ${key}_${letter}`))}
   from ${words.map(({ key }) => `words as ${key}`).join(', ')}
   where
   ${constraints}
@@ -199,7 +205,7 @@ function* chunks<T>(arr: T[], n: number) {
 }
 
 const printCrossword = (result: typeof rows[0]) => {
-  const finalTable = Object.fromEntries(letters.map(key => [key, null as null | string]));
+  const finalTable = Object.fromEntries(allColumns.map(key => [key, null as null | string]));
   for (const [key, value] of Object.entries(result)) {
     const [_wordKey, letter] = key.split('_')
     finalTable[letter] = finalTable[letter] || value;
@@ -212,7 +218,7 @@ const printCrossword = (result: typeof rows[0]) => {
 
   words
     .forEach(word => {
-      const locationLetters = word.range.map(location => letters[location]);
+      const locationLetters = word.range.map(location => generateGridLetter(location, width));
       const finalWord = locationLetters.map(letter => finalTable[letter]).join('')
       console.info(`${word.key}: ${finalWord} [${locationLetters.join(', ')}] [${word.range.join(', ')}]`)
     })
