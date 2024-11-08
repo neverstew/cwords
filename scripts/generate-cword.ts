@@ -5,7 +5,7 @@ import { parseFile } from '../src/structureFile';
 
 const db = new Database("words.db");
 
-const [_bun, _file, structureFile, offset = 0] = process.argv;
+const [_bun, _file, structureFile = "structure.txt", offset = 0] = process.argv;
 if (!structureFile) throw "Pass a filename with a structure";
 
 const {
