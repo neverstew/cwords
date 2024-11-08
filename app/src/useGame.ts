@@ -49,6 +49,7 @@ export const INITIAL_GAME_STATE = {
     selectedInput: 0,
     selectedWord: undefined as undefined | string,
     selectedWordDirection: 'across' as 'across' | 'down',
+    complete: false,
 };
 export type GameState = typeof INITIAL_GAME_STATE;
 export type GameAction =
@@ -65,9 +66,18 @@ const reducer: Dispatch = (state, action) => {
     if (action.type === "input-letter") {
         const letters = [...state.letters];
         letters[action.idx] = action.letter.toUpperCase();
+
+        const complete = letters
+            .map((l, i) => {
+                if (state.cells[i] === '.') return l === '';
+                return l === state.cells[i];
+            })
+            .every(result => Boolean(result));
+
         return {
             ...state,
             letters,
+            complete,
         }
     }
     if (action.type === 'input-focused') {

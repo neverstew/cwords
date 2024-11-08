@@ -1,15 +1,21 @@
 import clsx from 'clsx';
-import { ChangeEventHandler, KeyboardEvent, PropsWithChildren, useEffect, useRef } from 'react';
+import { ChangeEventHandler, KeyboardEvent, PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { GameState, useGame } from './useGame';
 import { GameContextProvider, useGameContext } from "./useGameContext";
 
 const App = () => {
   const game = useGame();
+  const [state] = game;
 
   return (
     <GameContextProvider value={game}>
       <Header />
       <div className='flex-col md:grid grid-cols-2 py-2 min-w-64'>
+        {state.complete ? (
+          <div className="col-span-2 px-6 pt-2">
+            <Celebration />
+          </div>
+        ) : null}
         <Main />
         <Aside />
       </div>
@@ -41,6 +47,16 @@ const Main = () => (
     <Crossword />
   </main>
 );
+
+const Celebration = () => {
+  return (
+    <div className='rounded py-1 px-2 bg-green-200' role="alert">
+      <p>
+        🎉 Correct - well done!
+      </p>
+    </div>
+  )
+}
 
 const Aside = () => (
   <aside className='p-6 hidden [@media(min-height:500px)]:block'>
