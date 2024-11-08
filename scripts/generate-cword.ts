@@ -1,11 +1,11 @@
 import { Database } from 'bun:sqlite';
-import { allColumnLetters, printGrid, printWords } from '../src/grid';
+import { allColumnLetters, finalGrid, printGrid, printWords } from '../src/grid';
 import { isDefined } from '../src/isDefined';
 import { parseFile } from '../src/structureFile';
 
 const db = new Database("words.db");
 
-const [_bun, _file, structureFile = "structure.txt", offset = 0] = process.argv;
+const [_bun, _file, structureFile = "structure.txt", offset = 0, format = 'txt'] = process.argv;
 if (!structureFile) throw "Pass a filename with a structure";
 
 const {
@@ -196,6 +196,21 @@ await Bun.write("latest-query.sql", query)
 const queryValues = words.flatMap(word => tableConstraints(word)[1]);
 const rows = await db.query(query).all(...queryValues) as Record<string, string | null>[];
 
-printGrid(rows[0], height, width);
-console.info('');
-printWords(rows[0], words, height, width)
+if (rows.length === 0) {
+  console.info("No solutions to this structure, sorry!");
+  process.exit(1);
+}
+
+if (format === 'txt') {
+  console.info(printGrid(rows[0], height, width));
+  console.info('');
+  printWords(rows[0], words, height, width)
+} else if (format === 'json') {
+  const puzzle = printGrid(rows[0], height, width);
+  console.info(JSON.stringify({
+    puzzle,
+    words: words.map(word => [word.key, { clue: "", range: word.range, counts: `(${word.range.length})` }]),
+  }, null, 4))
+} else {
+  console.error("Unsupported format");
+}

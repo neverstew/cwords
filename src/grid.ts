@@ -15,7 +15,7 @@ export const allColumnLetters = (height: number, width: number) =>
     .fill(null)
     .map((_, i) => generateGridLetter(i, width))
 
-const finalGrid = (resultRow: Record<string, string | null>, height: number, width: number) => {
+export const finalGrid = (resultRow: Record<string, string | null>, height: number, width: number) => {
   const finalTable = Object.fromEntries(allColumnLetters(height, width).map(key => [key, null as null | string]));
   for (const [key, value] of Object.entries(resultRow)) {
     const [_wordKey, letter] = key.split('_')
@@ -25,15 +25,14 @@ const finalGrid = (resultRow: Record<string, string | null>, height: number, wid
 }
 export const printGrid = (resultRow: Record<string, string | null>, height: number, width: number) => {
   const finalTable = finalGrid(resultRow, height, width);
-  Array.from(
+  return Array.from(
     chunks(
       Object.values(finalTable).map(letter => letter || '.'),
       width
     )
   )
-    .forEach(row =>
-      console.info(row.join(' '))
-    )
+    .map(row => row.join(' '))
+    .join("\n")
 }
 
 export const printWords = (resultRow: Record<string, string | null>, words: { range: number[]; key: string; }[], height: number, width: number) => {
