@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { ChangeEventHandler, KeyboardEvent, PropsWithChildren, useEffect, useRef, useState } from 'react';
+import { ChangeEventHandler, KeyboardEvent, PropsWithChildren, useEffect, useRef } from 'react';
 import { GameState, useGame } from './useGame';
 import { GameContextProvider, useGameContext } from "./useGameContext";
 
