@@ -209,7 +209,7 @@ if (format === 'txt') {
   const puzzle = printGrid(rows[0], height, width);
   console.info(JSON.stringify({
     puzzle,
-    words: words.map(word => [word.key, { clue: "", range: word.range, counts: `(${word.range.length})` }]),
+    words: Object.fromEntries(words.map(word => [word.key, { clue: "", range: word.range, counts: `(${word.range.length})` }] as const).sort(([keyA], [keyB]) => keyA.localeCompare(keyB))),
   }, null, 4))
 } else {
   console.error("Unsupported format");

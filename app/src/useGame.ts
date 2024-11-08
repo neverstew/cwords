@@ -1,49 +1,51 @@
 import { useEffect, useReducer } from "react";
 
-const puzzle = `
-c a s e s
-o . h . i
-l e a s t
-o . l . e
-r u l e s
-`;
-
+const puzzle = ". f . n .\nb a s e .\n. x . v .\n. . y e s\n. . . r .";
 export const INITIAL_GAME_STATE = {
-    puzzle,
-    cells: puzzle.trim().split(/\s+/).map(c => c.toUpperCase()),
-    letters: new Array(25).fill(''),
-    words: {
-        a1: {
-            clue: "Wine boxes found in gutted castles",
-            range: [0, 1, 2, 3, 4],
-            counts: '(5)',
+    "puzzle": ". f . n .\nb a s e .\n. x . v .\n. . y e s\n. . . r .",
+    "words": {
+        "a3": {
+            "clue": "Foundation from hearing low instrument",
+            "range": [
+                5,
+                6,
+                7,
+                8
+            ],
+            "counts": "(4)"
         },
-        a4: {
-            clue: "Returning, gutted castle's remains enclose tumultuous sea at lowest point",
-            range: [10, 11, 12, 13, 14],
-            counts: '(5)',
+        "a4": {
+            "clue": "Correct! Say \"back\" but swap the vowel",
+            "range": [
+                17,
+                18,
+                19
+            ],
+            "counts": "(3)"
         },
-        a5: {
-            clue: "Leaders, without a right, make laws",
-            range: [20, 21, 22, 23, 24],
-            counts: '(5)',
+        "d1": {
+            "clue": "Start frequently asking questions, finish cross - that's documents over the phone",
+            "range": [
+                1,
+                6,
+                11
+            ],
+            "counts": "(3)"
         },
-        d1: {
-            clue: "Dog's accessory: less LA, more first outing - that's shade.",
-            range: [0, 5, 10, 15, 20],
-            counts: '(5)',
-        },
-        d2: {
-            clue: "Rotating large gathering rooms will exist in the future",
-            range: [2, 7, 12, 17, 22],
-            counts: '(5)',
-        },
-        d3: {
-            clue: "Hears references to locations",
-            range: [4, 9, 14, 19, 24],
-            counts: '(5)',
+        "d2": {
+            "clue": "Not once; one. Very revealing.",
+            "range": [
+                3,
+                8,
+                13,
+                18,
+                23
+            ],
+            "counts": "(5)"
         }
     },
+    cells: puzzle.trim().split(/\s+/).map(c => c.toUpperCase()),
+    letters: new Array(25).fill(''),
     selectedInput: 0,
     selectedWord: undefined as undefined | string,
     selectedWordDirection: 'across' as 'across' | 'down',
@@ -114,7 +116,7 @@ const reducer: Dispatch = (state, action) => {
         }
     }
     if (action.type === 'select-relative-word') {
-        if (!state.selectedWord) return state 
+        if (!state.selectedWord) return state
         const thisWordIdx = Object.keys(state.words).indexOf(state.selectedWord);
         const selectedWordIdx = thisWordIdx + (action.direction === 'next' ? 1 : -1);
         const selectedWord = Object.keys(state.words)[selectedWordIdx]
@@ -123,7 +125,7 @@ const reducer: Dispatch = (state, action) => {
         const word = state.words[selectedWord as keyof typeof state.words];
         const selectedInput = word.range[0];
         const selectedWordDirection = word.range[1] - word.range[0] === 1 ? 'across' : 'down';
- 
+
         return {
             ...state,
             selectedWord,
