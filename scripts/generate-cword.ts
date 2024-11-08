@@ -1,7 +1,7 @@
-import { Database } from 'bun:sqlite'
-import { generateGridLetter } from '../src/gridLetters';
-import { parseFile } from '../src/structureFile';
+import { Database } from 'bun:sqlite';
+import { allColumnLetters, printGrid, printWords } from '../src/grid';
 import { isDefined } from '../src/isDefined';
+import { parseFile } from '../src/structureFile';
 
 const db = new Database("words.db");
 
@@ -15,9 +15,7 @@ const {
   width,
 } = await parseFile(structureFile);
 
-const allColumns = new Array(totalLetters)
-  .fill(null)
-  .map((_, i) => generateGridLetter(i, width))
+const allColumns = allColumnLetters(height, width);
 
 const cells = lines
   .slice(0, height)
@@ -198,31 +196,6 @@ await Bun.write("latest-query.sql", query)
 const queryValues = words.flatMap(word => tableConstraints(word)[1]);
 const rows = await db.query(query).all(...queryValues) as Record<string, string | null>[];
 
-function* chunks<T>(arr: T[], n: number) {
-  for (let i = 0; i < arr.length; i += n) {
-    yield arr.slice(i, i + n);
-  }
-}
-
-const printCrossword = (result: typeof rows[0]) => {
-  const finalTable = Object.fromEntries(allColumns.map(key => [key, null as null | string]));
-  for (const [key, value] of Object.entries(result)) {
-    const [_wordKey, letter] = key.split('_')
-    finalTable[letter] = finalTable[letter] || value;
-  }
-
-  Array.from(chunks(Object.values(finalTable).map(letter => letter || '.'), width))
-    .forEach(row => console.info(row.join(' ')))
-
-  console.info("")
-
-  words
-    .sort((a, b) => a.key.localeCompare(b.key))
-    .forEach(word => {
-      const locationLetters = word.range.map(location => generateGridLetter(location, width));
-      const finalWord = locationLetters.map(letter => finalTable[letter]).join('')
-      console.info(`${word.key}: ${finalWord} [${locationLetters.join(', ')}] [${word.range.join(', ')}]`)
-    })
-}
-
-printCrossword(rows[0])
+printGrid(rows[0], height, width);
+console.info('');
+printWords(rows[0], words, height, width)

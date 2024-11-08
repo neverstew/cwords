@@ -1,6 +1,6 @@
 import { Database } from 'bun:sqlite'
 import { parseFile } from '../src/structureFile';
-import { generateGridLetter } from '../src/gridLetters';
+import { generateGridLetter } from '../src/grid';
 
 const db = new Database("words.db");
 
