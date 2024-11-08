@@ -211,12 +211,13 @@ const printCrossword = (result: typeof rows[0]) => {
     finalTable[letter] = finalTable[letter] || value;
   }
 
-  Array.from(chunks(Object.values(finalTable).map(letter => letter || '.'), 5))
+  Array.from(chunks(Object.values(finalTable).map(letter => letter || '.'), width))
     .forEach(row => console.info(row.join(' ')))
 
   console.info("")
 
   words
+    .sort((a, b) => a.key.localeCompare(b.key))
     .forEach(word => {
       const locationLetters = word.range.map(location => generateGridLetter(location, width));
       const finalWord = locationLetters.map(letter => finalTable[letter]).join('')
