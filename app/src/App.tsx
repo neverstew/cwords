@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import { ChangeEventHandler, KeyboardEvent, PropsWithChildren, useEffect, useRef } from 'react';
+import './index.css';
 import { GameState, useGame } from './useGame';
 import { GameContextProvider, useGameContext } from "./useGameContext";
 
@@ -50,7 +51,7 @@ const Main = () => (
 
 const Celebration = () => {
   return (
-    <div className='rounded py-1 px-2 bg-green-200' role="alert">
+    <div className='rounded py-1 px-2 md:py-2 md:px-3 lg:py-3 lg:px-4 bg-green-200' role="alert">
       <p>
         🎉 Correct - well done!
       </p>
