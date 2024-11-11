@@ -48,7 +48,7 @@ export const INITIAL_GAME_STATE = {
             "counts": "(5)"
         },
         "d4": {
-            "clue": "Spilling the beans, bird that delivers babies loses it's head",
+            "clue": "\"Spill the beans\" sounds like bird that delivers babies losing it's head",
             "range": [
                 9,
                 14,
