@@ -1,47 +1,61 @@
 import { useEffect, useReducer } from "react";
 
-const puzzle = ". f . n .\nb a s e .\n. x . v .\n. . y e s\n. . . r .";
+const puzzle = "f . q . .\na d u l t\nc . o . a\nt o t a l\n. . e . k";
 export const INITIAL_GAME_STATE = {
-    "puzzle": ". f . n .\nb a s e .\n. x . v .\n. . y e s\n. . . r .",
+    "puzzle": "f . q . .\na d u l t\nc . o . a\nt o t a l\n. . e . k",
     "words": {
         "a3": {
-            "clue": "Foundation from hearing low instrument",
+            "clue": "Grown up gives secret, mad ultimatum",
             "range": [
                 5,
                 6,
                 7,
-                8
+                8,
+                9
             ],
-            "counts": "(4)"
+            "counts": "(5)"
         },
-        "a4": {
-            "clue": "Correct! Say \"back\" but swap the vowel",
+        "a5": {
+            "clue": "In sum, that's a wreck",
             "range": [
+                15,
+                16,
                 17,
                 18,
                 19
             ],
-            "counts": "(3)"
+            "counts": "(5)"
         },
         "d1": {
-            "clue": "Start frequently asking questions, finish cross - that's documents over the phone",
+            "clue": "Fiction halved, with one swapped for a truth",
             "range": [
-                1,
-                6,
-                11
+                0,
+                5,
+                10,
+                15
             ],
-            "counts": "(3)"
+            "counts": "(4)"
         },
         "d2": {
-            "clue": "Not once; one. Very revealing.",
+            "clue": "Starts quickly unzipping, only to expose a copy of another",
             "range": [
-                3,
-                8,
-                13,
-                18,
-                23
+                2,
+                7,
+                12,
+                17,
+                22
             ],
             "counts": "(5)"
+        },
+        "d4": {
+            "clue": "Spilling the beans, bird that delivers babies loses it's head",
+            "range": [
+                9,
+                14,
+                19,
+                24
+            ],
+            "counts": "(4)"
         }
     },
     cells: puzzle.trim().split(/\s+/).map(c => c.toUpperCase()),
