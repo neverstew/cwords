@@ -5,7 +5,7 @@ export const INITIAL_GAME_STATE = {
     "puzzle": "f . q . .\na d u l t\nc . o . a\nt o t a l\n. . e . k",
     "words": {
         "a3": {
-            "clue": "Grown up gives secret, mad ultimatum",
+            "clue": "Mad ultimatum traps grown up",
             "range": [
                 5,
                 6,
@@ -27,7 +27,7 @@ export const INITIAL_GAME_STATE = {
             "counts": "(5)"
         },
         "d1": {
-            "clue": "Fiction halved, with one swapped for a truth",
+            "clue": "Fiction halved, one swapped for a truth",
             "range": [
                 0,
                 5,
