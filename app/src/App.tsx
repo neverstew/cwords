@@ -24,19 +24,25 @@ const App = () => {
   );
 }
 
+const Title = () => <h1 className='p-4'>cwords</h1>
+
 const Header = () => {
   const [state] = useGameContext();
 
   return (
     <header className="shadow-md flex items-stretch md:sticky md:top-0">
-      <div className='hidden md:flex p-4 h-20 flex-col justify-center'>
-        <h1>cwords</h1>
+      <div className='hidden md:flex h-20 flex-col justify-center'>
+        <Title />
       </div>
       <div className='md:hidden grow'>
         {
           state.selectedWord
-            ? <SelectedWord />
-            : <h1>cwords</h1>
+            ? (
+              <div>
+                <SelectedWord />
+              </div>
+            )
+            : <Title />
         }
       </div>
     </header>

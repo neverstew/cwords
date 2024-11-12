@@ -129,6 +129,14 @@ const reducer: Dispatch = (state, action) => {
     }
     if (action.type === 'select-word') {
         if (!(action.key in state.words)) return state;
+
+        if (action.key === state.selectedWord) {
+            return {
+                ...state,
+                selectedWord: undefined,
+            }
+        }
+
         const word = state.words[action.key as keyof typeof state.words];
         const selectedInput = word.range[0];
         const selectedWordDirection = word.range[1] - word.range[0] === 1 ? 'across' : 'down';
