@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { ChangeEventHandler, KeyboardEvent, PropsWithChildren, useEffect, useRef } from 'react';
+import { ChangeEventHandler, KeyboardEvent, PropsWithChildren, useEffect, useMemo, useRef } from 'react';
 import './index.css';
 import { GameState, useGame } from './useGame';
 import { GameContextProvider, useGameContext } from "./useGameContext";
@@ -96,7 +96,7 @@ const Word = ({ id, word }: { id: keyof GameState['words'], word: GameState['wor
 
 const Crossword = () => {
   const [state] = useGameContext();
-  const cellStartNums =
+  const cellStartNums = useMemo(() =>
     new Array(25)
       .fill(null)
       .map((_, idx) =>
@@ -104,6 +104,8 @@ const Crossword = () => {
           .find(([_key, word]) => word.range[0] === idx)
           ?.[0].slice(1)
       )
+    , [state.words]
+  )
 
   return (
     <div className='relative'>
