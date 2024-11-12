@@ -12,5 +12,8 @@
     "debug": "bun run --inspect-wait scripts/generate-cword.ts",
     "generate": "bun run scripts/generate-cword.ts",
     "init": "bun run scripts/insert-words.ts"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.1.5"
   }
 }

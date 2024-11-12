@@ -64,7 +64,9 @@ export const INITIAL_GAME_STATE = {
     selectedWord: undefined as undefined | string,
     selectedWordDirection: 'across' as 'across' | 'down',
     complete: false,
+    view: 'grid' as 'grid' | 'clue',
 };
+
 export type GameState = typeof INITIAL_GAME_STATE;
 export type GameAction =
     { type: 'input-letter', idx: number; letter: string; }
@@ -72,6 +74,7 @@ export type GameAction =
     | { type: 'move-focus', idx: number; direction: 'up' | 'right' | 'down' | 'left' | 'next' | 'previous' }
     | { type: 'select-word', key: string }
     | { type: 'select-relative-word', direction: 'next' | 'previous' }
+    | { type: 'change-view', view: GameState['view'] }
 
 export type Dispatch = (state: GameState, action: GameAction) => GameState;
 const reducer: Dispatch = (state, action) => {
@@ -163,6 +166,12 @@ const reducer: Dispatch = (state, action) => {
             selectedWord,
             selectedInput,
             selectedWordDirection,
+        }
+    }
+    if(action.type === 'change-view') {
+        return {
+            ...state,
+            view: action.view,
         }
     }
     return state;

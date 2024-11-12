@@ -3,6 +3,7 @@ import { ChangeEventHandler, KeyboardEvent, PropsWithChildren, useEffect, useMem
 import './index.css';
 import { GameState, useGame } from './useGame';
 import { GameContextProvider, useGameContext } from "./useGameContext";
+import { Squares2X2Icon } from '@heroicons/react/16/solid';
 
 const App = () => {
   const game = useGame();
@@ -49,11 +50,53 @@ const Header = () => {
   )
 };
 
-const Main = () => (
-  <main className="mx-auto p-6 max-w-md sticky top-0 bg-white">
-    <Crossword />
-  </main>
-);
+const Main = () => {
+  const [{ view }] = useGameContext();
+
+  return (
+    <main className="mx-auto p-6 max-w-md sticky top-0 bg-white space-y-8">
+      <ViewSwitcher />
+      {
+        view === 'grid'
+          ? <Crossword />
+          : <Clue />
+      }
+    </main>
+  );
+}
+
+const ViewSwitcher = () => {
+  const [{ view: selectedView }, dispatch] = useGameContext();
+
+  const buttonClasses = (view: typeof selectedView) => clsx(
+    'border-2 border-gray-200 px-0.5 flex items-center gap-1',
+    view === selectedView && 'bg-gray-50 shadow-sm',
+    view !== selectedView && 'shadow-md'
+  )
+
+  return (
+    <div className="flex justify-center items-center gap-2">
+      <button onClick={() => dispatch({ type: 'change-view', view: 'grid' })} className={buttonClasses('grid')}>
+        <Squares2X2Icon className="size-4" />
+        Grid
+      </button>
+      <button onClick={() => dispatch({ type: 'change-view', view: 'clue' })} className={buttonClasses('clue')}>
+        <div className="flex mt-0.5">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 12 12 12" fill="currentColor" className="size-2">
+            <path fillRule="evenodd" d="M3 6a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3V6ZM3 15.75a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-2.25Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3v-2.25Z" clipRule="evenodd" />
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 12 12 12" fill="currentColor" className="size-2">
+            <path fillRule="evenodd" d="M3 6a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3V6ZM3 15.75a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-2.25Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3v-2.25Z" clipRule="evenodd" />
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 12 12 12" fill="currentColor" className="size-2">
+            <path fillRule="evenodd" d="M3 6a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3v2.25a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3V6ZM3 15.75a3 3 0 0 1 3-3h2.25a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-2.25Zm9.75 0a3 3 0 0 1 3-3H18a3 3 0 0 1 3 3V18a3 3 0 0 1-3 3h-2.25a3 3 0 0 1-3-3v-2.25Z" clipRule="evenodd" />
+          </svg>
+        </div>
+        Clue
+      </button>
+    </div>
+  )
+}
 
 const Celebration = () => {
   return (
@@ -232,6 +275,29 @@ const SelectedWord = () => {
       </div>
     </div>
   )
+}
+
+const Clue = () => {
+  const [state] = useGameContext();
+  const startNum = useMemo(() => state.selectedWord?.slice(1), [state.selectedWord]);
+
+  if (!state.selectedWord) {
+    return null;
+  }
+
+  const selectedWord = state.words[state.selectedWord as keyof typeof state.words];
+
+  return (
+    <div className='relative max-w-72 sm:max-w-96 mx-auto'>
+      <div className="w-full absolute top-0 left-0 grid grid-cols-5 grid-rows-1 -z-10">
+        <CellBackground idx={selectedWord.range[0]}>{startNum}</CellBackground>
+      </div>
+      <div className="grid grid-cols-5 grid-rows-1">
+        {selectedWord.range.map((i) => <Cell key={i} idx={i} />)}
+      </div>
+    </div>
+  )
+
 }
 
 export default App
