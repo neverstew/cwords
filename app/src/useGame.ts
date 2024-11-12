@@ -26,7 +26,7 @@ export const INITIAL_GAME_STATE = {
             "counts": "(4)"
         },
         "d2": {
-            "clue": "Some time since start a turn",
+            "clue": "Some time since a turn",
             "range": [1, 6, 11],
             "counts": "(3)"
         },
