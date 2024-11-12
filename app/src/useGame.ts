@@ -1,62 +1,46 @@
 import { useEffect, useReducer } from "react";
 
-const puzzle = "f . q . .\na d u l t\nc . o . a\nt o t a l\n. . e . k";
+const puzzle = `
+b a b y .
+. g . . f
+h o u s e
+. . s . w
+c h a t .
+`;
 export const INITIAL_GAME_STATE = {
-    "puzzle": "f . q . .\na d u l t\nc . o . a\nt o t a l\n. . e . k",
+    puzzle,
     "words": {
-        "a3": {
-            "clue": "Mad ultimatum traps grown up",
-            "range": [
-                5,
-                6,
-                7,
-                8,
-                9
+        "a1": {
+            "clue": "Recently delivered - handle with excessive care",
+            "range": [0,1,2,3]
             ],
+            "counts": "(4)"
+        },
+        "a4": {
+            "clue": "Enclose yourself inside bendy pipe",
+            "range": [10, 11, 12, 13, 14],
             "counts": "(5)"
         },
-        "a5": {
-            "clue": "In sum, that's a wreck",
-            "range": [
-                15,
-                16,
-                17,
-                18,
-                19
-            ],
-            "counts": "(5)"
-        },
-        "d1": {
-            "clue": "Fiction halved, one swapped for a truth",
-            "range": [
-                0,
-                5,
-                10,
-                15
-            ],
+        "a6": {
+            "clue": "Bouncing teeth begin conversation",
+            "range": [20, 21, 22, 23],
             "counts": "(4)"
         },
         "d2": {
-            "clue": "Starts quickly unzipping, only to expose a copy of another",
-            "range": [
-                2,
-                7,
-                12,
-                17,
-                22
-            ],
-            "counts": "(5)"
+            "clue": "Some time since start of Monopoly",
+            "range": [1,6,11],
+            "counts": "(3)"
         },
-        "d4": {
-            "clue": "\"Spill the beans\" sounds like bird that delivers babies losing it's head",
-            "range": [
-                9,
-                14,
-                19,
-                24
-            ],
-            "counts": "(4)"
-        }
+        "d3": {
+            "clue": "A small number sound relieved",
+            "range": [9,14,19],
+            "counts": "(3)"
+        },
+        "d5": {
+            "clue": "Center of sausage is richest area in the world",
+            "range": [12,17,22],
+            "counts": "(3)"
+        },
     },
     cells: puzzle.trim().split(/\s+/).map(c => c.toUpperCase()),
     letters: new Array(25).fill(''),
