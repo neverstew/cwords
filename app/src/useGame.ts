@@ -12,7 +12,7 @@ export const INITIAL_GAME_STATE = {
     "words": {
         "a1": {
             "clue": "Recently delivered - handle with excessive care",
-            "range": [0,1,2,3],
+            "range": [0, 1, 2, 3],
             "counts": "(4)"
         },
         "a4": {
@@ -27,17 +27,17 @@ export const INITIAL_GAME_STATE = {
         },
         "d2": {
             "clue": "Some time since start a turn",
-            "range": [1,6,11],
+            "range": [1, 6, 11],
             "counts": "(3)"
         },
         "d3": {
             "clue": "A small number sound relieved",
-            "range": [9,14,19],
+            "range": [9, 14, 19],
             "counts": "(3)"
         },
         "d5": {
             "clue": "Center of sausage is richest area in the world",
-            "range": [12,17,22],
+            "range": [12, 17, 22],
             "counts": "(3)"
         },
     },
@@ -151,7 +151,7 @@ const reducer: Dispatch = (state, action) => {
             selectedWordDirection,
         }
     }
-    if(action.type === 'change-view') {
+    if (action.type === 'change-view') {
         return {
             ...state,
             view: action.view,
