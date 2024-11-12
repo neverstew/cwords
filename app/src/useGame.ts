@@ -21,12 +21,12 @@ export const INITIAL_GAME_STATE = {
             "counts": "(5)"
         },
         "a6": {
-            "clue": "Bouncing teeth begin conversation",
+            "clue": "Bouncing teeth started to natter",
             "range": [20, 21, 22, 23],
             "counts": "(4)"
         },
         "d2": {
-            "clue": "Some time since start of Monopoly",
+            "clue": "Some time since start a turn",
             "range": [1,6,11],
             "counts": "(3)"
         },
