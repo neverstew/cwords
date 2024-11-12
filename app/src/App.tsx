@@ -28,11 +28,11 @@ const Header = () => {
   const [state] = useGameContext();
 
   return (
-    <header className="h-20 shadow-md flex items-center md:sticky md:top-0">
-      <div className='hidden md:block p-4'>
+    <header className="shadow-md flex items-stretch md:sticky md:top-0">
+      <div className='hidden md:flex p-4 h-20 flex-col justify-center'>
         <h1>cwords</h1>
       </div>
-      <div className='md:hidden p-2 grow'>
+      <div className='md:hidden grow'>
         {
           state.selectedWord
             ? <SelectedWord />
@@ -218,11 +218,11 @@ const SelectedWord = () => {
   const word = state.words[state.selectedWord as keyof typeof state.words];
 
   return (
-    <div className="flex-col">
+    <div className="p-2 flex-col bg-yellow-100">
       <Word id={state.selectedWord as keyof typeof state.words} word={word} />
       <div className="flex justify-between gap-4">
-        <button onClick={() => dispatch({ type: 'select-relative-word', direction: 'previous' })} className="text-start text-sm sm:text-md md:text-lg">{'<'} prev</button>
-        <button onClick={() => dispatch({ type: 'select-relative-word', direction: 'next' })} className="text-start text-sm sm:text-md md:text-lg">next {'>'}</button>
+        <button onClick={() => dispatch({ type: 'select-relative-word', direction: 'previous' })} className="px-1 text-start text-sm sm:text-md md:text-lg bg-white border-2 border-gray-200">{'<'} prev</button>
+        <button onClick={() => dispatch({ type: 'select-relative-word', direction: 'next' })} className="px-1 text-start text-sm sm:text-md md:text-lg bg-white border-2 border-gray-200">next {'>'}</button>
       </div>
     </div>
   )
