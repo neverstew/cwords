@@ -12,8 +12,7 @@ export const INITIAL_GAME_STATE = {
     "words": {
         "a1": {
             "clue": "Recently delivered - handle with excessive care",
-            "range": [0,1,2,3]
-            ],
+            "range": [0,1,2,3],
             "counts": "(4)"
         },
         "a4": {
