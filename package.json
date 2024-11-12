@@ -14,6 +14,5 @@
     "init": "bun run scripts/insert-words.ts"
   },
   "dependencies": {
-    "@heroicons/react": "^2.1.5"
   }
 }
