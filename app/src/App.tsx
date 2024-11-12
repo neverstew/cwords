@@ -108,7 +108,7 @@ const Crossword = () => {
   )
 
   return (
-    <div className='relative'>
+    <div className='relative max-w-72 sm:max-w-96 mx-auto'>
       <div className="w-full absolute top-0 left-0 grid grid-cols-5 grid-rows-5 -z-10">
         {cellStartNums.map((num, idx) => <CellBackground idx={idx}>{num}</CellBackground>)}
       </div>
@@ -204,7 +204,7 @@ const Cell = ({ idx }: { idx: number }) => {
       onKeyDown={onKeyDown}
       onChange={onChange}
       onFocus={onFocus}
-      className="border aspect-square text-3xl text-center bg-white bg-opacity-0"
+      className="border aspect-square text-2xl sm:text-3xl text-center bg-white bg-opacity-0"
     />
   );
 };
