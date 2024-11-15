@@ -27,7 +27,7 @@ export const INITIAL_GAME_STATE = {
             "counts": "(5)"
         },
         "d1": {
-            "clue": "Equipment holds first medal for olympics contestant",
+            "clue": "First medal at center of wild rage for Olympics contestant",
             "range": [
                 1,
                 6,
