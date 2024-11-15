@@ -5,7 +5,7 @@ export const INITIAL_GAME_STATE = {
     puzzle,
     "words": {
         "a3": {
-            "clue": "Mortgage interest produces crazy eyes",
+            "clue": "Losing myself from crazy satire that is mortgage interests",
             "range": [
                 5,
                 6,
