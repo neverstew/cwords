@@ -13,7 +13,7 @@ export const INITIAL_GAME_STATE = {
                 8,
                 9
             ],
-            "counts": "(5)"
+            "counts": "(5)",
         },
         "a4": {
             "clue": "Yes, evil aliens risk starting initial trips around the sun",
