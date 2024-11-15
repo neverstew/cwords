@@ -1,45 +1,53 @@
 import { useEffect, useReducer } from "react";
 
-const puzzle = `
-b a b y .
-. g . . f
-h o u s e
-. . s . w
-c h a t .
-`;
+const puzzle = ". g . h .\nr a t e s\n. m . a .\ny e a r s\n. r . t .";
 export const INITIAL_GAME_STATE = {
     puzzle,
     "words": {
-        "a1": {
-            "clue": "Recently delivered - handle with excessive care",
-            "range": [0, 1, 2, 3],
-            "counts": "(4)"
-        },
-        "a4": {
-            "clue": "Enclose yourself inside bendy pipe",
-            "range": [10, 11, 12, 13, 14],
+        "a3": {
+            "clue": "Mortgage interest produces crazy eyes",
+            "range": [
+                5,
+                6,
+                7,
+                8,
+                9
+            ],
             "counts": "(5)"
         },
-        "a6": {
-            "clue": "Bouncing teeth started to natter",
-            "range": [20, 21, 22, 23],
-            "counts": "(4)"
+        "a4": {
+            "clue": "Yes, evil aliens risk starting initial trips around the sun",
+            "range": [
+                15,
+                16,
+                17,
+                18,
+                19
+            ],
+            "counts": "(5)"
+        },
+        "d1": {
+            "clue": "Equipment holds first medal for olympics contestant",
+            "range": [
+                1,
+                6,
+                11,
+                16,
+                21
+            ],
+            "counts": "(5)"
         },
         "d2": {
-            "clue": "Some time since a turn",
-            "range": [1, 6, 11],
-            "counts": "(3)"
-        },
-        "d3": {
-            "clue": "A small number sound relieved",
-            "range": [9, 14, 19],
-            "counts": "(3)"
-        },
-        "d5": {
-            "clue": "Center of sausage is richest area in the world",
-            "range": [12, 17, 22],
-            "counts": "(3)"
-        },
+            "clue": "Instagram like gets the blood pumping",
+            "range": [
+                3,
+                8,
+                13,
+                18,
+                23
+            ],
+            "counts": "(5)"
+        }
     },
     cells: puzzle.trim().split(/\s+/).map(c => c.toUpperCase()),
     letters: new Array(25).fill(''),
