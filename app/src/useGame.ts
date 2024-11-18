@@ -5,7 +5,7 @@ export const INITIAL_GAME_STATE = {
     puzzle, 
     "words": {
         "a1": {
-            "clue": "Enormous pig with upside down head ",
+            "clue": "Enormous pig with upside down head",
             "range": [
                 0,
                 1,
