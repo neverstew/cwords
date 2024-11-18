@@ -1,5 +1,5 @@
 import { Database } from 'bun:sqlite';
-import { allColumnLetters, finalGrid, printGrid, printWords } from '../src/grid';
+import { allColumnLetters, printGrid, printWords } from '../src/grid';
 import { isDefined } from '../src/isDefined';
 import { parseFile } from '../src/structureFile';
 

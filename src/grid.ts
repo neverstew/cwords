@@ -42,6 +42,6 @@ export const printWords = (resultRow: Record<string, string | null>, words: { ra
     .forEach(word => {
       const locationLetters = word.range.map(location => generateGridLetter(location, width));
       const finalWord = locationLetters.map(letter => finalTable[letter]).join('')
-      console.info(`${word.key}: ${finalWord} [${locationLetters.join(', ')}] [${word.range.join(', ')}]`)
+      console.info(finalWord);
     })
 }
