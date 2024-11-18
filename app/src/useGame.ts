@@ -34,7 +34,7 @@ export const INITIAL_GAME_STATE = {
             "counts": "(3)"
         },
         "d2": {
-            "clue": "This just in: \"ONION (loudly) SHAKE-UP NOT ON!\"",
+            "clue": "This just in: Alex Jones' platform losing battles",
             "range": [
                 1,
                 6,
