@@ -1,9 +1,9 @@
+import { Squares2X2Icon } from '@heroicons/react/16/solid';
 import clsx from 'clsx';
 import { ChangeEventHandler, KeyboardEvent, PropsWithChildren, useEffect, useMemo, useRef } from 'react';
 import './index.css';
 import { GameState, useGame } from './useGame';
 import { GameContextProvider, useGameContext } from "./useGameContext";
-import { PencilIcon, Squares2X2Icon } from '@heroicons/react/16/solid';
 
 const App = () => {
   const game = useGame();
