@@ -13,7 +13,8 @@
     "debug": "bun run --inspect-wait scripts/generate-cword.ts",
     "generate": "bun run scripts/generate-cword.ts",
     "init": "bun run scripts/insert-words.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "dash": "open https://dash.cloudflare.com/172f27b3350f49f3749bd13af2c33e06/pages/view/cwords"
   },
   "dependencies": {}
 }
