@@ -100,7 +100,7 @@ const reducer: Dispatch = (state, action) => {
         const selectedWordKeyValue =
             word && word.range.includes(action.idx)
                 ? [state.selectedWord!, word] as const
-                : Object.entries(state.words).find(([_key, word]) => word.range.includes(action.idx));
+                : findMatchingWord(state, action.idx);
         return {
             ...state,
             selectedInput: action.idx,
@@ -222,4 +222,11 @@ const wordsMatch = (a: GameState['words'], b: GameState['words']) => {
 
 const notesMatch = (a: GameState['notes'], b: GameState['notes']) => {
     return JSON.stringify(a) === JSON.stringify(b);
+}
+
+const findMatchingWord = (state: GameState, letterIndex: number) => {
+    const matching = Object.entries(state.words).find(([_key, word]) => word.range[0] === letterIndex);
+    if (matching) return matching;
+
+    return Object.entries(state.words).find(([_key, word]) => word.range.includes(letterIndex));
 }
