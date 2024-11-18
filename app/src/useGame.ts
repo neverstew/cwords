@@ -5,7 +5,7 @@ export const INITIAL_GAME_STATE = {
     puzzle, 
     "words": {
         "a1": {
-            "clue": "Enormous pig with upside down head",
+            "clue": "Enormous pig with upside down head ",
             "range": [
                 0,
                 1,
@@ -174,11 +174,19 @@ const reducer: Dispatch = (state, action) => {
 }
 
 export const useGame = () => {
-    let storedState: typeof INITIAL_GAME_STATE;
+    let storedState: GameState;
     try {
-        const parsedState = JSON.parse(window.localStorage.getItem('state')!) as typeof INITIAL_GAME_STATE
+        const parsedState = JSON.parse(window.localStorage.getItem('state')!) as GameState
         if (parsedState.puzzle !== INITIAL_GAME_STATE.puzzle) throw "New game";
-        storedState = parsedState || INITIAL_GAME_STATE;
+
+        if (!wordsMatch(parsedState.words, INITIAL_GAME_STATE.words)) {
+            storedState = parsedState;
+            storedState.words = INITIAL_GAME_STATE.words;
+            storedState.selectedWord = undefined;
+            storedState.selectedInput = 0;
+        } else {
+            storedState = parsedState || INITIAL_GAME_STATE;
+        }
     } catch {
         storedState = INITIAL_GAME_STATE;
     }
@@ -191,4 +199,8 @@ export const useGame = () => {
     }, [state])
 
     return game;
+}
+
+const wordsMatch = (a: GameState['words'], b: GameState['words']) => {
+    return JSON.stringify(a) === JSON.stringify(b);
 }
