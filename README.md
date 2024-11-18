@@ -58,9 +58,9 @@ a b o u t
 . . e . .
 a p r i l
 
-a1: about [a, b, c, d, e] [0, 1, 2, 3, 4]
-d2: offer [c, h, m, r, w] [2, 7, 12, 17, 22]
-a3: april [u, v, w, x, y] [20, 21, 22, 23, 24]
+about
+offer
+april
 ```
 
 ### Getting another one
@@ -70,3 +70,11 @@ bun run generate $path_to_structure_file 43
 ```
 
 There are usually many, many combinations. Don't be afraid of big numbers!
+
+### Generating JSON
+To put the puzzle into the app, you can generate the JSON output of the words that the app expects.
+
+```sh
+bun run generate $path_to_structure_file $offset json
+```
+
