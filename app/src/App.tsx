@@ -282,7 +282,7 @@ const Clue = () => {
   const startNum = useMemo(() => state.selectedWord?.slice(1), [state.selectedWord]);
 
   if (!state.selectedWord) {
-    return null;
+    return <p className='text-gray-400 text-center'>Select a clue</p>;
   }
 
   const selectedWord = state.words[state.selectedWord as keyof typeof state.words];
