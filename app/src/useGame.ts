@@ -1,52 +1,57 @@
 import { useEffect, useReducer } from "react";
 
-const puzzle = ". g . h .\nr a t e s\n. m . a .\ny e a r s\n. r . t .";
+const puzzle = "b i g . .\n. n . h .\no f t e n\n. o . r .\n. . k e y";
 export const INITIAL_GAME_STATE = {
-    puzzle,
+    puzzle, 
     "words": {
-        "a3": {
-            "clue": "Mortgage interest produces crazy eyes",
+        "a1": {
+            "clue": "Enormous pig with upside down head",
             "range": [
-                5,
-                6,
-                7,
-                8,
-                9
+                0,
+                1,
+                2
             ],
-            "counts": "(5)"
+            "counts": "(3)"
         },
         "a4": {
-            "clue": "Yes, evil aliens risk starting initial trips around the sun",
+            "clue": "Western sonnet for secret is repetitive",
             "range": [
-                15,
-                16,
-                17,
-                18,
-                19
+                10,
+                11,
+                12,
+                13,
+                14
             ],
             "counts": "(5)"
         },
-        "d1": {
-            "clue": "Equipment holds first medal for olympics contestant",
+        "a5": {
+            "clue": "Dial tones in harmony",
+            "range": [
+                22,
+                23,
+                24
+            ],
+            "counts": "(3)"
+        },
+        "d2": {
+            "clue": "Intelligence wars lost to The Onion?",
             "range": [
                 1,
                 6,
                 11,
-                16,
-                21
+                16
             ],
-            "counts": "(5)"
+            "counts": "(4)"
         },
-        "d2": {
-            "clue": "Instagram like gets the blood pumping",
+        "d3": {
+            "clue": "That's my point - hear hear!",
             "range": [
-                3,
                 8,
                 13,
                 18,
                 23
             ],
-            "counts": "(5)"
+            "counts": "(4)"
         }
     },
     cells: puzzle.trim().split(/\s+/).map(c => c.toUpperCase()),
