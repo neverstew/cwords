@@ -61,6 +61,7 @@ export const INITIAL_GAME_STATE = {
     selectedWordDirection: 'across' as 'across' | 'down',
     complete: false,
     view: 'grid' as 'grid' | 'clue',
+    notes: {} as Record<string, string>,
 };
 
 export type GameState = typeof INITIAL_GAME_STATE;
@@ -71,6 +72,7 @@ export type GameAction =
     | { type: 'select-word', key: string }
     | { type: 'select-relative-word', direction: 'next' | 'previous' }
     | { type: 'change-view', view: GameState['view'] }
+    | { type: 'change-notes', notes: GameState['notes'][string] }
 
 export type Dispatch = (state: GameState, action: GameAction) => GameState;
 const reducer: Dispatch = (state, action) => {
@@ -170,6 +172,15 @@ const reducer: Dispatch = (state, action) => {
             view: action.view,
         }
     }
+    if (action.type === 'change-notes') {
+        const notes = { ...state.notes };
+        notes[state.selectedWord as keyof typeof state.words] = action.notes;
+        console.debug(notes);
+        return {
+            ...state,
+            notes,
+        }
+    }
     return state;
 }
 
@@ -187,6 +198,10 @@ export const useGame = () => {
         } else {
             storedState = parsedState || INITIAL_GAME_STATE;
         }
+
+        if (!notesMatch(parsedState.notes, INITIAL_GAME_STATE.notes)) {
+            storedState.notes = parsedState.notes || INITIAL_GAME_STATE.notes;
+        }
     } catch {
         storedState = INITIAL_GAME_STATE;
     }
@@ -202,5 +217,9 @@ export const useGame = () => {
 }
 
 const wordsMatch = (a: GameState['words'], b: GameState['words']) => {
+    return JSON.stringify(a) === JSON.stringify(b);
+}
+
+const notesMatch = (a: GameState['notes'], b: GameState['notes']) => {
     return JSON.stringify(a) === JSON.stringify(b);
 }

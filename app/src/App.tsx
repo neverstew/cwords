@@ -3,7 +3,7 @@ import { ChangeEventHandler, KeyboardEvent, PropsWithChildren, useEffect, useMem
 import './index.css';
 import { GameState, useGame } from './useGame';
 import { GameContextProvider, useGameContext } from "./useGameContext";
-import { Squares2X2Icon } from '@heroicons/react/16/solid';
+import { PencilIcon, Squares2X2Icon } from '@heroicons/react/16/solid';
 
 const App = () => {
   const game = useGame();
@@ -59,7 +59,9 @@ const Main = () => {
       {
         view === 'grid'
           ? <Crossword />
-          : <Clue />
+          : view === 'clue'
+            ? <Clue />
+            : null
       }
     </main>
   );
@@ -288,16 +290,43 @@ const Clue = () => {
   const selectedWord = state.words[state.selectedWord as keyof typeof state.words];
 
   return (
-    <div className='relative max-w-72 sm:max-w-96 mx-auto'>
+    <div className='relative max-w-72 sm:max-w-96 mx-auto space-y-4'>
       <div className="w-full absolute top-0 left-0 grid grid-cols-5 grid-rows-1 -z-10">
         <CellBackground idx={selectedWord.range[0]}>{startNum}</CellBackground>
       </div>
       <div className="grid grid-cols-5 grid-rows-1">
         {selectedWord.range.map((i) => <Cell key={i} idx={i} />)}
       </div>
+      <Notes />
     </div>
   )
 
+}
+
+const Notes = () => {
+  const [state, dispatch] = useGameContext();
+  const value = useMemo(() => state.notes[state.selectedWord as keyof typeof state.words] || '', [state.notes, state.selectedWord])
+
+  if (!state.selectedWord) return (
+    <p className='text-gray-400 text-center'>Select a clue</p>
+  );
+
+  return (
+    <details>
+      <summary>Notes</summary>
+      <textarea
+        name="notes"
+        id="notes"
+        rows={3}
+        placeholder="Enter any working notes you'd like to keep here"
+        className='border-2 border-gray-200 w-full px-2 py-1'
+        value={value}
+        onChange={e =>
+          dispatch({ type: 'change-notes', notes: e.target.value })
+        }
+      />
+    </details>
+  )
 }
 
 export default App
