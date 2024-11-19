@@ -1,70 +1,74 @@
 import { useEffect, useReducer } from "react";
 
 const puzzle = "b i g . .\n. n . h .\no f t e n\n. o . r .\n. . k e y";
-export const INITIAL_GAME_STATE = {
-    puzzle, 
-    "words": {
-        "a1": {
-            "clue": "Enormous pig with upside down head",
-            "range": [
-                0,
-                1,
-                2
-            ],
-            "counts": "(3)"
+export const INITIAL_GAME_STATE = () => {
+    const dimensions = { height: 5, width: 5 };
+    return {
+        puzzle,
+        "words": {
+            "a1": {
+                "clue": "Enormous pig with upside down head",
+                "range": [
+                    0,
+                    1,
+                    2
+                ],
+                "counts": "(3)"
+            },
+            "a4": {
+                "clue": "Western sonnet for secret is repetitive",
+                "range": [
+                    10,
+                    11,
+                    12,
+                    13,
+                    14
+                ],
+                "counts": "(5)"
+            },
+            "a5": {
+                "clue": "Dial tones in harmony",
+                "range": [
+                    22,
+                    23,
+                    24
+                ],
+                "counts": "(3)"
+            },
+            "d2": {
+                "clue": "This just in: Alex Jones' platform losing battles",
+                "range": [
+                    1,
+                    6,
+                    11,
+                    16
+                ],
+                "counts": "(4)"
+            },
+            "d3": {
+                "clue": "That's my point - hear hear!",
+                "range": [
+                    8,
+                    13,
+                    18,
+                    23
+                ],
+                "counts": "(4)"
+            }
         },
-        "a4": {
-            "clue": "Western sonnet for secret is repetitive",
-            "range": [
-                10,
-                11,
-                12,
-                13,
-                14
-            ],
-            "counts": "(5)"
-        },
-        "a5": {
-            "clue": "Dial tones in harmony",
-            "range": [
-                22,
-                23,
-                24
-            ],
-            "counts": "(3)"
-        },
-        "d2": {
-            "clue": "This just in: Alex Jones' platform losing battles",
-            "range": [
-                1,
-                6,
-                11,
-                16
-            ],
-            "counts": "(4)"
-        },
-        "d3": {
-            "clue": "That's my point - hear hear!",
-            "range": [
-                8,
-                13,
-                18,
-                23
-            ],
-            "counts": "(4)"
-        }
-    },
-    cells: puzzle.trim().split(/\s+/).map(c => c.toUpperCase()),
-    letters: new Array(25).fill(''),
-    selectedInput: 0,
-    selectedWord: undefined as undefined | string,
-    selectedWordDirection: 'across' as 'across' | 'down',
-    complete: false,
-    view: 'grid' as 'grid' | 'clue',
-    notes: {} as Record<string, string>,
+        cells: puzzle.trim().split(/\s+/).map(c => c.toUpperCase()),
+        dimensions,
+        letters: new Array(dimensions.height * dimensions.width).fill(''),
+        selectedInput: 0,
+        selectedWord: undefined as undefined | string,
+        selectedWordDirection: 'across' as 'across' | 'down',
+        complete: false,
+        view: 'grid' as 'grid' | 'clue',
+        notes: {} as Record<string, string>,
+    };
 };
 
-export type GameState = typeof INITIAL_GAME_STATE;
+export type GameState = ReturnType<typeof INITIAL_GAME_STATE>;
 export type GameAction =
     { type: 'input-letter', idx: number; letter: string; }
     | { type: 'input-focused', idx: number }
@@ -115,13 +119,13 @@ const reducer: Dispatch = (state, action) => {
         } else if (action.direction === 'right') {
             selectedInput += 1;
         } else if (action.direction === 'up') {
-            selectedInput -= 5;
+            selectedInput -= state.dimensions.width;
         } else if (action.direction === 'down') {
-            selectedInput += 5;
+            selectedInput += state.dimensions.width;
         } else if (action.direction === 'next') {
-            selectedInput += state.selectedWordDirection === 'across' ? 1 : 5;
+            selectedInput += state.selectedWordDirection === 'across' ? 1 : state.dimensions.width;
         } else if (action.direction === 'previous') {
-            selectedInput -= state.selectedWordDirection === 'across' ? 1 : 5;
+            selectedInput -= state.selectedWordDirection === 'across' ? 1 : state.dimensions.width;
         }
         return {
             ...state,
@@ -186,24 +190,29 @@ const reducer: Dispatch = (state, action) => {
 
 export const useGame = () => {
     let storedState: GameState;
+    const initialState = INITIAL_GAME_STATE();
     try {
         const parsedState = JSON.parse(window.localStorage.getItem('state')!) as GameState
-        if (parsedState.puzzle !== INITIAL_GAME_STATE.puzzle) throw "New game";
+        if (parsedState.puzzle !== initialState.puzzle) throw "New game";
 
-        if (!wordsMatch(parsedState.words, INITIAL_GAME_STATE.words)) {
+        if (!fieldsMatch(parsedState.words, initialState.words)) {
             storedState = parsedState;
-            storedState.words = INITIAL_GAME_STATE.words;
+            storedState.words = initialState.words;
             storedState.selectedWord = undefined;
             storedState.selectedInput = 0;
         } else {
-            storedState = parsedState || INITIAL_GAME_STATE;
+            storedState = parsedState || initialState;
         }
 
-        if (!notesMatch(parsedState.notes, INITIAL_GAME_STATE.notes)) {
-            storedState.notes = parsedState.notes || INITIAL_GAME_STATE.notes;
+        if (!fieldsMatch(parsedState.notes, initialState.notes)) {
+            storedState.notes = parsedState.notes || initialState.notes;
+        }
+
+        if (!fieldsMatch(parsedState.dimensions, initialState.dimensions)) {
+            storedState.dimensions = initialState.dimensions;
         }
     } catch {
-        storedState = INITIAL_GAME_STATE;
+        storedState = initialState;
     }
 
     const game = useReducer(reducer, storedState);
@@ -216,11 +225,7 @@ export const useGame = () => {
     return game;
 }
 
-const wordsMatch = (a: GameState['words'], b: GameState['words']) => {
-    return JSON.stringify(a) === JSON.stringify(b);
-}
-
-const notesMatch = (a: GameState['notes'], b: GameState['notes']) => {
+const fieldsMatch = <T>(a: T, b: T) => {
     return JSON.stringify(a) === JSON.stringify(b);
 }
 

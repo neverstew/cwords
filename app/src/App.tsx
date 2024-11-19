@@ -148,7 +148,7 @@ const Word = ({ id, word }: { id: keyof GameState['words'], word: GameState['wor
 const Crossword = () => {
   const [state] = useGameContext();
   const cellStartNums = useMemo(() =>
-    new Array(25)
+    new Array(state.dimensions.height * state.dimensions.width)
       .fill(null)
       .map((_, idx) =>
         Object.entries(state.words)
@@ -160,10 +160,22 @@ const Crossword = () => {
 
   return (
     <div className='relative max-w-72 sm:max-w-96 mx-auto'>
-      <div className="w-full absolute top-0 left-0 grid grid-cols-5 grid-rows-5 -z-10">
+      <div 
+        className="w-full absolute top-0 left-0 grid -z-10"
+        style={{
+          gridTemplateColumns: `repeat(${state.dimensions.width}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${state.dimensions.width}, minmax(0, 1fr))`,
+        }}
+      >
         {cellStartNums.map((num, idx) => <CellBackground idx={idx}>{num}</CellBackground>)}
       </div>
-      <div className="grid grid-cols-5 grid-rows-5">
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: `repeat(${state.dimensions.width}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${state.dimensions.width}, minmax(0, 1fr))`,
+        }}
+      >
         {state.cells.map((_, i) => <Cell key={i} idx={i} />)}
       </div>
     </div>
@@ -291,10 +303,22 @@ const Clue = () => {
 
   return (
     <div className='relative max-w-72 sm:max-w-96 mx-auto space-y-4'>
-      <div className="w-full absolute top-0 left-0 grid grid-cols-5 grid-rows-1 -z-10">
+      <div
+        className="w-full absolute top-0 left-0 grid -z-10"
+        style={{
+          gridTemplateColumns: `repeat(${state.dimensions.width}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(1, minmax(0, 1fr))`,
+        }}
+      >
         <CellBackground idx={selectedWord.range[0]}>{startNum}</CellBackground>
       </div>
-      <div className="grid grid-cols-5 grid-rows-1">
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: `repeat(${state.dimensions.width}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(1, minmax(0, 1fr))`,
+        }}
+      >
         {selectedWord.range.map((i) => <Cell key={i} idx={i} />)}
       </div>
       <Notes />
