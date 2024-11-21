@@ -1,6 +1,6 @@
 # cwords
 
-Welcome to this absolute mess of a project, generating crosswords.
+Welcome to this absolute mess of a project, generating and solving cryptic crosswords.
 
 ## How it works
 
@@ -70,3 +70,42 @@ bun run generate $path_to_structure_file 43
 ```
 
 There are usually many, many combinations. Don't be afraid of big numbers!
+
+## Other tools
+
+### wurd generator
+To split a clue up into all of the constituent chunks of words, run
+```sh
+bun run scripts/show-nwurds.ts Revolutionary device that reproduces itself when up-ended
+```
+```
+# outputs
+Revolutionary device that reproduces itself when up-ended
+Revolutionary device that reproduces itself when
+Revolutionary device that reproduces itself
+Revolutionary device that reproduces
+Revolutionary device that
+Revolutionary device
+Revolutionary
+              device that reproduces itself when up-ended
+              device that reproduces itself when
+              device that reproduces itself
+              device that reproduces
+              device that
+              device
+                     that reproduces itself when up-ended
+                     that reproduces itself when
+                     that reproduces itself
+                     that reproduces
+                     that
+                          reproduces itself when up-ended
+                          reproduces itself when
+                          reproduces itself
+                          reproduces
+                                     itself when up-ended
+                                     itself when
+                                     itself
+                                            when up-ended
+                                            when
+                                                 up-ended
+```
