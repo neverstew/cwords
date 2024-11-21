@@ -47,7 +47,9 @@ function nWurds(
     return nWurds(next, n, acc);
 }
 
-function allWurds(words: string[]) {
+export function allWurds(words: string | string[]) {
+    if (typeof words === 'string') return allWurds(splitSentence(removeCount(words)));
+
     const acc: nWurdsAccumulator = {
         currentStartIndex: 0,
         wurds: [],
