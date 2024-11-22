@@ -4,6 +4,8 @@ import { ChangeEventHandler, KeyboardEvent, PropsWithChildren, useEffect, useMem
 import './index.css';
 import { GameState, useGame } from './useGame';
 import { GameContextProvider, useGameContext } from "./useGameContext";
+import { Header } from './components/Header';
+import { Word } from './components/Word';
 
 const App = () => {
   const game = useGame();
@@ -24,31 +26,6 @@ const App = () => {
     </GameContextProvider>
   );
 }
-
-const Title = () => <h1 className='p-4'>cwords</h1>
-
-const Header = () => {
-  const [state] = useGameContext();
-
-  return (
-    <header className="shadow-md flex items-stretch md:sticky md:top-0">
-      <div className='hidden md:flex h-20 flex-col justify-center'>
-        <Title />
-      </div>
-      <div className='md:hidden grow'>
-        {
-          state.selectedWord
-            ? (
-              <div>
-                <SelectedWord />
-              </div>
-            )
-            : <Title />
-        }
-      </div>
-    </header>
-  )
-};
 
 const Main = () => {
   const [{ view }] = useGameContext();
@@ -127,21 +104,6 @@ const Words = () => {
         <Word key={key} id={key as keyof GameState['words']} word={word} />
       ))}
     </>
-  )
-}
-
-const Word = ({ id, word }: { id: keyof GameState['words'], word: GameState['words'][keyof GameState['words']] }) => {
-  const [state, dispatch] = useGameContext();
-  const classes = clsx(
-    id === state.selectedWord && "font-bold",
-    state.words[id].range.map(i => state.letters[i]).every(char => char.match(/[a-zA-Z]/)) && "text-gray-400",
-  );
-
-  return (
-    <div className={classes}>
-      <h3 className='uppercase text-xs sm:text-sm md:text-md'>{id}</h3>
-      <button className="text-start text-sm sm:text-md md:text-lg" onClick={() => dispatch({ type: 'select-word', key: id })}>{word.clue} {word.counts}</button>
-    </div>
   )
 }
 
@@ -273,23 +235,6 @@ const Cell = ({ idx }: { idx: number }) => {
 };
 
 const BlankCell = () => <div className="bg-black border aspect-square" />;
-
-const SelectedWord = () => {
-  const [state, dispatch] = useGameContext();
-
-  if (!state.selectedWord) return null;
-  const word = state.words[state.selectedWord as keyof typeof state.words];
-
-  return (
-    <div className="p-2 flex-col bg-yellow-100">
-      <Word id={state.selectedWord as keyof typeof state.words} word={word} />
-      <div className="flex justify-between gap-4">
-        <button onClick={() => dispatch({ type: 'select-relative-word', direction: 'previous' })} className="px-1 text-start text-sm sm:text-md md:text-lg bg-white border-2 border-gray-200">{'<'} prev</button>
-        <button onClick={() => dispatch({ type: 'select-relative-word', direction: 'next' })} className="px-1 text-start text-sm sm:text-md md:text-lg bg-white border-2 border-gray-200">next {'>'}</button>
-      </div>
-    </div>
-  )
-}
 
 const Clue = () => {
   const [state] = useGameContext();

@@ -5,8 +5,13 @@ import {
   createBrowserRouter,
   RouterProvider,
 } from "react-router-dom";
+import { Solver } from './Solver.tsx';
 
 const router = createBrowserRouter([
+  {
+    path: "/solver",
+    element: <Solver />,
+  },
   {
     path: "/",
     element: <App />,
