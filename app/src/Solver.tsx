@@ -1,16 +1,16 @@
 import { Header } from "./components/Header";
-import { useGame } from "./useGame";
-import { GameContextProvider } from "./useGameContext";
+import { Word } from "./components/Word";
+import { useGameContext } from "./useGameContext";
 
 export const Solver = () => {
-    const game = useGame();
+    const [state] = useGameContext();
 
     return (
-        <GameContextProvider value={game}>
+        <>
             <Header />
             <main>
-                This is the solver
+                <Word id={state.selectedWord as keyof typeof state.words} word={state.words[state.selectedWord as keyof typeof state.words]} />
             </main>
-        </GameContextProvider >
+        </ >
     );
 }

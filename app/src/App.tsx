@@ -1,18 +1,17 @@
 import { Squares2X2Icon } from '@heroicons/react/16/solid';
 import clsx from 'clsx';
 import { ChangeEventHandler, KeyboardEvent, PropsWithChildren, useEffect, useMemo, useRef } from 'react';
-import './index.css';
-import { GameState, useGame } from './useGame';
-import { GameContextProvider, useGameContext } from "./useGameContext";
 import { Header } from './components/Header';
 import { Word } from './components/Word';
+import './index.css';
+import { GameState } from './useGame';
+import { useGameContext } from "./useGameContext";
 
 const App = () => {
-  const game = useGame();
-  const [state] = game;
+  const [state] = useGameContext();
 
   return (
-    <GameContextProvider value={game}>
+    <>
       <Header />
       <div className='flex-col md:grid grid-cols-2 py-2 min-w-64'>
         {state.complete ? (
@@ -23,7 +22,7 @@ const App = () => {
         <Main />
         <Aside />
       </div>
-    </GameContextProvider>
+    </>
   );
 }
 
@@ -122,7 +121,7 @@ const Crossword = () => {
 
   return (
     <div className='relative max-w-72 sm:max-w-96 mx-auto'>
-      <div 
+      <div
         className="w-full absolute top-0 left-0 grid -z-10"
         style={{
           gridTemplateColumns: `repeat(${state.dimensions.width}, minmax(0, 1fr))`,

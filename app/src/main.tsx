@@ -6,6 +6,8 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import { Solver } from './Solver.tsx';
+import { GameContextProvider } from './useGameContext.ts';
+import { useGame } from './useGame.ts';
 
 const router = createBrowserRouter([
   {
@@ -18,8 +20,17 @@ const router = createBrowserRouter([
   },
 ]);
 
+const ContextualisedApp = () => {
+  const game = useGame()
+  return (
+    <GameContextProvider value={game}>
+      <RouterProvider router={router} />
+    </GameContextProvider>
+  )
+}
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <ContextualisedApp />
   </StrictMode>
 );
