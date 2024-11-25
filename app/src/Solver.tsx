@@ -48,7 +48,11 @@ const Annotator = ({ word }: { word: GameState["words"][keyof GameState['words']
     const [steps, setSteps] = useState<AnnotatorStep[]>([
         { clue: word.clue },
     ])
-    const addStep = (step: AnnotatorStep) => setSteps(current => [...current, step]);
+    const addStep = (newStep: AnnotatorStep) => setSteps(current => {
+        const last = current.pop()!;
+        last.highlightRange = [state.start, state.end];
+        return [...current, last, newStep];
+    });
     const [transformation, setTransformation] = useState<Transformation>({ type: 'definition', definition: '' });
 
     const applyTransformation = () => {
@@ -61,7 +65,7 @@ const Annotator = ({ word }: { word: GameState["words"][keyof GameState['words']
             beforeSelection,
             transformation.definition,
             afterSelection,
-        ].map(s => s.trim()).join(' ');
+        ].map(s => s.trim()).join(' ')
         addStep({ clue: newClue })
     }
 
@@ -84,8 +88,8 @@ const Annotator = ({ word }: { word: GameState["words"][keyof GameState['words']
         const start = Math.min(anchorOffset, focusOffset);
         const end = Math.max(anchorOffset, focusOffset);
         setState({
-           start,
-           end 
+            start,
+            end
         });
     }
 
@@ -114,7 +118,23 @@ const Annotator = ({ word }: { word: GameState["words"][keyof GameState['words']
 
 type AnnotatorStep = {
     clue: string;
+    highlightRange?: [number, number];
 }
-const AnnotatorStep = ({ clue }: AnnotatorStep) => {
-    return <span>{clue}</span>
+const AnnotatorStep = ({ clue, highlightRange }: AnnotatorStep) => { 
+    let beforeSelection = null;
+    let duringSelection = <span>{clue}</span>;
+    let afterSelection = null;
+    if (highlightRange) {
+        beforeSelection = <>{clue.slice(0, highlightRange[0])}</>;
+        duringSelection = <u>{clue.slice(highlightRange[0], highlightRange[1])}</u>;
+        afterSelection = <>{clue.slice(highlightRange[1])}</>;
+    }
+
+    return (
+        <div className="font-mono">
+           {beforeSelection} 
+           {duringSelection} 
+           {afterSelection} 
+        </div>
+    );
 }
