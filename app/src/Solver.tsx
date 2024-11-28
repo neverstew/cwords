@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import { Header } from "./components/Header";
-import { consumesAnchor, consumesOther, exactMatch, overlapsBeginning, overlapsEnd, type Range, type TypedRange, rangesOverlap, stringRange, uniqueRanges } from "./ranges";
+import { consumesAnchor, consumesOther, exactMatch, overlapsBeginning, overlapsEnd, rangesOverlap, stringRange, uniqueRanges, type Range, type TypedRange } from "./ranges";
 import { GameState } from "./useGame";
 import { useGameContext } from "./useGameContext";
-import { SolutionTreeNode } from "./useSolver";
+import { nodeId, SolutionTreeNode } from "./useSolver";
 
 export const Solver = () => {
     return (
@@ -143,6 +143,7 @@ const AnnotatorStep = ({ clue, highlightRange }: AnnotatorStep) => {
 
 const SolutionTree = ({ word }: { word: string }) => {
     const rootNode = useMemo<SolutionTreeNode>(() => ({
+        id: nodeId(),
         children: [],
         clue: word,
         ranges: [{ start: 0, end: word.length - 1, type: 'clue' }]
@@ -162,7 +163,7 @@ const TreeNode = ({ initialNode }: { initialNode: SolutionTreeNode }) => {
         const selection = document.getSelection();
         if (!selection) return;
         if (selection.isCollapsed) return;
-        if (selection.anchorNode?.parentElement?.id !== node.clue) return;
+        if (selection.anchorNode?.parentElement?.id !== node.id.toString()) return;
 
         const { startOffset: start, endOffset } = selection.getRangeAt(0);
         const highlightRange: TypedRange = { start, end: endOffset - 1, type: 'definition' };
@@ -218,13 +219,33 @@ const TreeNode = ({ initialNode }: { initialNode: SolutionTreeNode }) => {
         return () => removeEventListener('selectionchange', debouncedListener);
     }, [debouncedListener]);
 
+    const handleSave = () => {
+        // create a new child
+        const newSolutionNode: SolutionTreeNode = {
+            id: nodeId(),
+            parent: node,
+            children: [],
+            clue: node.clue, // adapt this later with transforms
+            ranges: node.ranges,
+        }
+        setNode(currentNode => ({
+            ...currentNode,
+            children: [...currentNode.children, newSolutionNode],
+        }))
+    }
+
     return (
         <div className="border-l pl-2">
             <div className="font-mono">
-                <pre id={node.clue}>Clue:   {node.clue}</pre>
-                <pre>Ranges: {node.ranges.map(range => <RangeSpan key={[range.start, range.end].join(',')} word={node.clue} range={range} />)}</pre>
+                <pre id={node.id.toString()}>{node.clue}</pre>
+                <pre>{node.ranges.map(range => <RangeSpan key={[range.start, range.end].join(',')} word={node.clue} range={range} />)}</pre>
             </div>
-            <pre>{JSON.stringify(node.ranges, null, 2)}</pre>
+            {node.children.length === 0 ? (
+                <>
+                    <button onClick={handleSave} className="border p-1">Save</button>
+                    <pre>{JSON.stringify(node.ranges, null, 2)}</pre>
+                </>
+            ) : null}
             {node.children.map(child => <TreeNode key={node.clue} initialNode={child} />)}
         </div>
     )
