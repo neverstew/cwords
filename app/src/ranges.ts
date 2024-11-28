@@ -6,6 +6,9 @@ export type Range = {
     start: number;
     end: number;
 }
+export type TypedRange = Range & {
+    type: 'clue' | 'definition';
+}
 
 export function rangesOverlap(anchor: Range, other: Range) {
     return other.end >= anchor.start && other.start <= anchor.end;
@@ -35,12 +38,12 @@ export function stringRange(str: string, range: Range) {
     return str.slice(range.start, range.end + 1);
 }
 
-export function uniqueRanges(ranges: Range[]) {
+export function uniqueRanges<T extends Range>(ranges: T[]) {
     return Object.values(
         ranges
             .reduce((hash, range) => {
                 hash[`${range.start}, ${range.end}`] = range;
                 return hash
-            }, {} as Record<string, Range>)
+            }, {} as Record<string, T>)
     )
 }

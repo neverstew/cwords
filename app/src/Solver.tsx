@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import { Header } from "./components/Header";
-import { consumesAnchor, consumesOther, exactMatch, overlapsBeginning, overlapsEnd, type Range, rangesOverlap, stringRange, uniqueRanges } from "./ranges";
+import { consumesAnchor, consumesOther, exactMatch, overlapsBeginning, overlapsEnd, type Range, type TypedRange, rangesOverlap, stringRange, uniqueRanges } from "./ranges";
 import { GameState } from "./useGame";
 import { useGameContext } from "./useGameContext";
 import { SolutionTreeNode } from "./useSolver";
@@ -145,7 +145,7 @@ const SolutionTree = ({ word }: { word: string }) => {
     const rootNode = useMemo<SolutionTreeNode>(() => ({
         children: [],
         clue: word,
-        ranges: [{ start: 0, end: word.length - 1 }]
+        ranges: [{ start: 0, end: word.length - 1, type: 'clue' }]
     }), [word])
 
     return (
@@ -165,7 +165,7 @@ const TreeNode = ({ initialNode }: { initialNode: SolutionTreeNode }) => {
         if (selection.anchorNode?.parentElement?.id !== node.clue) return;
 
         const { startOffset: start, endOffset } = selection.getRangeAt(0);
-        const highlightRange = { start, end: endOffset - 1 };
+        const highlightRange: TypedRange = { start, end: endOffset - 1, type: 'definition' };
         const splitRanges =
             node.ranges
                 .flatMap(range => {
@@ -179,11 +179,11 @@ const TreeNode = ({ initialNode }: { initialNode: SolutionTreeNode }) => {
                     }
                     if (overlapsBeginning(range, highlightRange)) {
                         console.debug('range split at start', { ranges: node.ranges, range, highlightRange });
-                        return [highlightRange, { start: highlightRange.end + 1, end: range.end }]
+                        return [highlightRange, { start: highlightRange.end + 1, end: range.end, type: range.type }]
                     }
                     if (overlapsEnd(range, highlightRange)) {
                         console.debug('range split at end', { ranges: node.ranges, range, highlightRange });
-                        return [{ start: range.start, end: highlightRange.start - 1 }, highlightRange]
+                        return [{ start: range.start, end: highlightRange.start - 1, type: range.type }, highlightRange]
                     }
                     if (consumesAnchor(range, highlightRange)) {
                         console.debug('range consumed', { ranges: node.ranges, range, highlightRange });
@@ -192,9 +192,9 @@ const TreeNode = ({ initialNode }: { initialNode: SolutionTreeNode }) => {
                     if (consumesOther(range, highlightRange)) {
                         console.debug('range split in three', { ranges: node.ranges, range, highlightRange });
                         return [
-                            { start: range.start, end: highlightRange.start - 1 },
+                            { start: range.start, end: highlightRange.start - 1, type: range.type },
                             highlightRange,
-                            { start: highlightRange.end + 1, end: range.end },
+                            { start: highlightRange.end + 1, end: range.end, type: range.type },
                         ]
                     }
 
@@ -202,7 +202,7 @@ const TreeNode = ({ initialNode }: { initialNode: SolutionTreeNode }) => {
                     return range;
                 })
 
-        const newRanges = uniqueRanges(
+        const newRanges: TypedRange[] = uniqueRanges(
             splitRanges
                 .sort((a, b) => a.start - b.start)
                 .filter(range => range.end - range.start >= 0)

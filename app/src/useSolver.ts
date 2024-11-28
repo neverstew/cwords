@@ -1,4 +1,4 @@
-import { Range } from "./ranges";
+import { TypedRange } from "./ranges";
 
 export type SolverState = {
     originalClue: string;
@@ -10,5 +10,5 @@ export type SolutionTreeNode = {
     parent?: SolutionTreeNode;
     children: SolutionTreeNode[];
     clue: string;
-    ranges: Range[];
+    ranges: TypedRange[];
 }
