@@ -1,9 +1,11 @@
-import { Link, useAsyncError } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { useDebouncedCallback } from "use-debounce";
 import { Header } from "./components/Header";
-import { useGameContext } from "./useGameContext";
-import { AnnotateTag, TextAnnotate } from "react-text-annotate-blend";
+import { consumesAnchor, consumesOther, exactMatch, overlapsBeginning, overlapsEnd, type Range, rangesOverlap, stringRange, uniqueRanges } from "./ranges";
 import { GameState } from "./useGame";
-import { useEffect, useRef, useState } from "react";
+import { useGameContext } from "./useGameContext";
+import { SolutionTreeNode } from "./useSolver";
 
 export const Solver = () => {
     return (
@@ -34,7 +36,7 @@ const WorkingArea = () => {
     )
 
     const word = state.words[selectedWord];
-    return <Annotator word={word} />
+    return <SolutionTree word={word.clue} />
 }
 
 type Transformation = {
@@ -120,7 +122,7 @@ type AnnotatorStep = {
     clue: string;
     highlightRange?: [number, number];
 }
-const AnnotatorStep = ({ clue, highlightRange }: AnnotatorStep) => { 
+const AnnotatorStep = ({ clue, highlightRange }: AnnotatorStep) => {
     let beforeSelection = null;
     let duringSelection = <span>{clue}</span>;
     let afterSelection = null;
@@ -132,9 +134,114 @@ const AnnotatorStep = ({ clue, highlightRange }: AnnotatorStep) => {
 
     return (
         <div className="font-mono">
-           {beforeSelection} 
-           {duringSelection} 
-           {afterSelection} 
+            {beforeSelection}
+            {duringSelection}
+            {afterSelection}
         </div>
     );
 }
+
+const SolutionTree = ({ word }: { word: string }) => {
+    const rootNode = useMemo<SolutionTreeNode>(() => ({
+        children: [],
+        clue: word,
+        ranges: [{ start: 0, end: word.length - 1 }]
+    }), [word])
+
+    return (
+        <div className="space-y-8">
+            <TreeNode initialNode={rootNode} />
+        </div>
+    )
+}
+
+const TreeNode = ({ initialNode }: { initialNode: SolutionTreeNode }) => {
+    const [node, setNode] = useState(initialNode);
+
+    const listener = useCallback(() => {
+        const selection = document.getSelection();
+        if (!selection) return;
+        if (selection.isCollapsed) return;
+        if (selection.anchorNode?.parentElement?.id !== node.clue) return;
+
+        const { startOffset: start, endOffset } = selection.getRangeAt(0);
+        const highlightRange = { start, end: endOffset - 1 };
+        const splitRanges =
+            node.ranges
+                .flatMap(range => {
+                    if (!rangesOverlap(range, highlightRange)) {
+                        console.debug('ranges do not overlap', { ranges: node.ranges, range, highlightRange });
+                        return [range, highlightRange];
+                    }
+                    if (exactMatch(range, highlightRange)) {
+                        console.debug('ranges match', { ranges: node.ranges, range, highlightRange });
+                        return [highlightRange];
+                    }
+                    if (overlapsBeginning(range, highlightRange)) {
+                        console.debug('range split at start', { ranges: node.ranges, range, highlightRange });
+                        return [highlightRange, { start: highlightRange.end + 1, end: range.end }]
+                    }
+                    if (overlapsEnd(range, highlightRange)) {
+                        console.debug('range split at end', { ranges: node.ranges, range, highlightRange });
+                        return [{ start: range.start, end: highlightRange.start - 1 }, highlightRange]
+                    }
+                    if (consumesAnchor(range, highlightRange)) {
+                        console.debug('range consumed', { ranges: node.ranges, range, highlightRange });
+                        return [highlightRange];
+                    }
+                    if (consumesOther(range, highlightRange)) {
+                        console.debug('range split in three', { ranges: node.ranges, range, highlightRange });
+                        return [
+                            { start: range.start, end: highlightRange.start - 1 },
+                            highlightRange,
+                            { start: highlightRange.end + 1, end: range.end },
+                        ]
+                    }
+
+                    console.error("Highlight range unhandled case", { ranges: node.ranges, highlightRange });
+                    return range;
+                })
+
+        const newRanges = uniqueRanges(
+            splitRanges
+                .sort((a, b) => a.start - b.start)
+                .filter(range => range.end - range.start >= 0)
+        );
+
+        setNode(currentNode => ({ ...currentNode, ranges: newRanges }));
+    }, [node]);
+
+    const debouncedListener = useDebouncedCallback(listener, 250, { trailing: true });
+
+    useEffect(() => {
+        document.addEventListener('selectionchange', debouncedListener);
+        return () => removeEventListener('selectionchange', debouncedListener);
+    }, [debouncedListener]);
+
+    return (
+        <div className="border-l pl-2">
+            <div className="font-mono">
+                <pre id={node.clue}>Clue:   {node.clue}</pre>
+                <pre>Ranges: {node.ranges.map(range => <RangeSpan key={[range.start, range.end].join(',')} word={node.clue} range={range} />)}</pre>
+            </div>
+            <pre>{JSON.stringify(node.ranges, null, 2)}</pre>
+            {node.children.map(child => <TreeNode key={node.clue} initialNode={child} />)}
+        </div>
+    )
+}
+
+const RangeSpan = ({ word, range }: { word: string, range: Range }) => {
+    const chars = stringRange(word, range);
+    const underlineColour = colourGenerator.next();
+    return <span className={`underline ${underlineColour.value}`}>{chars.split('').map(() => ' ').join('')}</span>
+}
+
+const colours = ["decoration-red-300", "decoration-amber-300", "decoration-lime-300", "decoration-emerald-300", "decoration-cyan-300", "decoration-indigo-300",]
+function* nextColour() {
+    let i = 0;
+    while (true) {
+        yield colours[i];
+        i = (i + 1) % colours.length;
+    }
+}
+const colourGenerator = nextColour();

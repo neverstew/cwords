@@ -16,7 +16,8 @@
     "react-dom": "^18.3.1",
     "react-router": "^6.28.0",
     "react-router-dom": "^6.28.0",
-    "react-text-annotate-blend": "^1.2.0"
+    "react-text-annotate-blend": "^1.2.0",
+    "use-debounce": "^10.0.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
