@@ -1,4 +1,5 @@
 import { TypedRange } from "./ranges";
+import { Transformation } from "./transformations";
 
 export type SolverState = {
     originalClue: string;
@@ -12,6 +13,7 @@ export type SolutionTreeNode = {
     children: SolutionTreeNode[];
     clue: string;
     ranges: TypedRange[];
+    transformation: Transformation;
 }
 
 function *genId() {

@@ -1,3 +1,5 @@
+import { TransformationType } from "./transformations";
+
 /**
  * A range is between two points on a line.
  * `start` and `end` are INCLUSIVE
@@ -7,7 +9,7 @@ export type Range = {
     end: number;
 }
 export type TypedRange = Range & {
-    type: 'clue' | 'definition';
+    type: TransformationType;
 }
 
 export function rangesOverlap(anchor: Range, other: Range) {

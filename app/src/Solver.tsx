@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import { Header } from "./components/Header";
 import { consumesAnchor, consumesOther, exactMatch, overlapsBeginning, overlapsEnd, rangesOverlap, stringRange, uniqueRanges, type Range, type TypedRange } from "./ranges";
-import { GameState } from "./useGame";
 import { useGameContext } from "./useGameContext";
-import { nodeId, SolutionTreeNode } from "./useSolver";
+import { nodeId, SolutionTreeNode } from "./solutionTree";
+import { Transformation, DefinitionTransformation, ReplacementTransformation, transform } from "./transformations";
 
 export const Solver = () => {
     return (
@@ -39,114 +39,13 @@ const WorkingArea = () => {
     return <SolutionTree word={word.clue} />
 }
 
-type Transformation = {
-    type: "definition";
-    definition: string;
-}
-
-const Annotator = ({ word }: { word: GameState["words"][keyof GameState['words']] }) => {
-    const [state, setState] = useState<any>({});
-    const [selection, setSelection] = useState<Selection | null>(null);
-    const [steps, setSteps] = useState<AnnotatorStep[]>([
-        { clue: word.clue },
-    ])
-    const addStep = (newStep: AnnotatorStep) => setSteps(current => {
-        const last = current.pop()!;
-        last.highlightRange = [state.start, state.end];
-        return [...current, last, newStep];
-    });
-    const [transformation, setTransformation] = useState<Transformation>({ type: 'definition', definition: '' });
-
-    const applyTransformation = () => {
-        const finalStep = steps[steps.length - 1];
-        const clue = finalStep.clue;
-        const beforeSelection = clue.slice(0, state.start);
-        const duringSelection = clue.slice(state.start, state.end);
-        const afterSelection = clue.slice(state.end);
-        const newClue = [
-            beforeSelection,
-            transformation.definition,
-            afterSelection,
-        ].map(s => s.trim()).join(' ')
-        addStep({ clue: newClue })
-    }
-
-    const handleSelectionChange = (selection: Selection) => {
-        setSelection(selection);
-        const {
-            anchorNode,
-            anchorOffset,
-            direction,
-            focusNode,
-            focusOffset,
-            isCollapsed,
-            rangeCount,
-            type,
-        } = selection;
-
-        if (type === "Caret") return;
-        if (isCollapsed) return;
-
-        const start = Math.min(anchorOffset, focusOffset);
-        const end = Math.max(anchorOffset, focusOffset);
-        setState({
-            start,
-            end
-        });
-    }
-
-    useEffect(() => {
-        const listener = () => {
-            const selection = document.getSelection();
-            if (!selection) return;
-            handleSelectionChange(selection);
-        }
-        document.addEventListener('selectionchange', listener);
-        return () => removeEventListener('selectionchange', listener);
-    }, []);
-
-    return (
-        <div className="flex flex-col gap-4 items-start">
-            {steps.map((step, i) => <AnnotatorStep {...step} key={i} />)}
-            <div className="flex gap-2 items-baseline">
-                <span>Type: {transformation.type}</span>
-                <input className="border" type="text" name="definition" id="definition" value={transformation.definition} onChange={e => setTransformation(current => ({ ...current, definition: e.target.value }))} />
-                <button onClick={applyTransformation}>Save</button>
-            </div>
-            <pre>{JSON.stringify(state, null, 2)}</pre>
-        </div>
-    )
-}
-
-type AnnotatorStep = {
-    clue: string;
-    highlightRange?: [number, number];
-}
-const AnnotatorStep = ({ clue, highlightRange }: AnnotatorStep) => {
-    let beforeSelection = null;
-    let duringSelection = <span>{clue}</span>;
-    let afterSelection = null;
-    if (highlightRange) {
-        beforeSelection = <>{clue.slice(0, highlightRange[0])}</>;
-        duringSelection = <u>{clue.slice(highlightRange[0], highlightRange[1])}</u>;
-        afterSelection = <>{clue.slice(highlightRange[1])}</>;
-    }
-
-    return (
-        <div className="font-mono">
-            {beforeSelection}
-            {duringSelection}
-            {afterSelection}
-        </div>
-    );
-}
-
 const SolutionTree = ({ word }: { word: string }) => {
     const rootNode = useMemo<SolutionTreeNode>(() => ({
         id: nodeId(),
         children: [],
         clue: word,
-        ranges: [{ start: 0, end: word.length - 1, type: 'clue' }]
+        ranges: [{ start: 0, end: word.length - 1, type: 'clue' }],
+        transformation: { type: 'clue' }
     }), [word])
 
     return (
@@ -166,32 +65,32 @@ const TreeNode = ({ initialNode }: { initialNode: SolutionTreeNode }) => {
         if (selection.anchorNode?.parentElement?.id !== node.id.toString()) return;
 
         const { startOffset: start, endOffset } = selection.getRangeAt(0);
-        const highlightRange: TypedRange = { start, end: endOffset - 1, type: 'definition' };
+        const highlightRange: TypedRange = { start, end: endOffset - 1, type: node.transformation.type };
         const splitRanges =
-            node.ranges
+            initialNode.ranges
                 .flatMap(range => {
                     if (!rangesOverlap(range, highlightRange)) {
-                        console.debug('ranges do not overlap', { ranges: node.ranges, range, highlightRange });
+                        console.debug('ranges do not overlap', { ranges: initialNode.ranges, range, highlightRange });
                         return [range, highlightRange];
                     }
                     if (exactMatch(range, highlightRange)) {
-                        console.debug('ranges match', { ranges: node.ranges, range, highlightRange });
+                        console.debug('ranges match', { ranges: initialNode.ranges, range, highlightRange });
                         return [highlightRange];
                     }
                     if (overlapsBeginning(range, highlightRange)) {
-                        console.debug('range split at start', { ranges: node.ranges, range, highlightRange });
+                        console.debug('range split at start', { ranges: initialNode.ranges, range, highlightRange });
                         return [highlightRange, { start: highlightRange.end + 1, end: range.end, type: range.type }]
                     }
                     if (overlapsEnd(range, highlightRange)) {
-                        console.debug('range split at end', { ranges: node.ranges, range, highlightRange });
+                        console.debug('range split at end', { ranges: initialNode.ranges, range, highlightRange });
                         return [{ start: range.start, end: highlightRange.start - 1, type: range.type }, highlightRange]
                     }
                     if (consumesAnchor(range, highlightRange)) {
-                        console.debug('range consumed', { ranges: node.ranges, range, highlightRange });
+                        console.debug('range consumed', { ranges: initialNode.ranges, range, highlightRange });
                         return [highlightRange];
                     }
                     if (consumesOther(range, highlightRange)) {
-                        console.debug('range split in three', { ranges: node.ranges, range, highlightRange });
+                        console.debug('range split in three', { ranges: initialNode.ranges, range, highlightRange });
                         return [
                             { start: range.start, end: highlightRange.start - 1, type: range.type },
                             highlightRange,
@@ -199,7 +98,7 @@ const TreeNode = ({ initialNode }: { initialNode: SolutionTreeNode }) => {
                         ]
                     }
 
-                    console.error("Highlight range unhandled case", { ranges: node.ranges, highlightRange });
+                    console.error("Highlight range unhandled case", { ranges: initialNode.ranges, highlightRange });
                     return range;
                 })
 
@@ -219,20 +118,26 @@ const TreeNode = ({ initialNode }: { initialNode: SolutionTreeNode }) => {
         return () => removeEventListener('selectionchange', debouncedListener);
     }, [debouncedListener]);
 
-    const handleSave = () => {
+    const handleSave = (transformation: Transformation) => {
+        const transformed = transform(node, transformation);
+
         // create a new child
         const newSolutionNode: SolutionTreeNode = {
             id: nodeId(),
-            parent: node,
+            parent: transformed,
             children: [],
-            clue: node.clue, // adapt this later with transforms
-            ranges: node.ranges,
+            clue: transformed.clue, // adapt this later with transforms
+            ranges: transformed.ranges,
+            transformation: { type: 'clue' },
         }
+        
         setNode(currentNode => ({
             ...currentNode,
             children: [...currentNode.children, newSolutionNode],
         }))
     }
+
+    const handleTransformationChange = (transformation: Transformation) => setNode(current => ({ ...current, transformation }))
 
     return (
         <div className="border-l pl-2">
@@ -242,11 +147,50 @@ const TreeNode = ({ initialNode }: { initialNode: SolutionTreeNode }) => {
             </div>
             {node.children.length === 0 ? (
                 <>
-                    <button onClick={handleSave} className="border p-1">Save</button>
+                    <HighlightControls transformation={node.transformation} onTransformationChange={handleTransformationChange} onSave={handleSave} />
                     <pre>{JSON.stringify(node.ranges, null, 2)}</pre>
                 </>
             ) : null}
             {node.children.map(child => <TreeNode key={node.clue} initialNode={child} />)}
+        </div>
+    )
+}
+
+const HighlightControls = ({ transformation, onTransformationChange, onSave }: { transformation: Transformation, onTransformationChange: (t: Transformation) => void, onSave: (transformation: Transformation) => void }) => {
+    let controls;
+    switch (transformation.type) {
+        case 'definition':
+            controls = <DefinitionHighlightControls key={transformation.type} transformation={transformation} onChange={onTransformationChange} />
+            break;
+        case 'replacement':
+            controls = <ReplaceHighlightControls key={transformation.type} transformation={transformation} onChange={onTransformationChange} />
+            break;
+    }
+
+    return (
+        <div className="flex gap-2 items-baseline">
+            {controls}
+            <select name="type" id="type" value={transformation.type} onChange={(e) => onTransformationChange({ type: e.target.value as Transformation['type'] })}>
+                {['definition', 'replacement'].map(type => <option key={type} value={type}>{type}</option>)}
+            </select>
+            <button onClick={() => onSave(transformation)}>Save</button>
+        </div>
+    )
+}
+
+const DefinitionHighlightControls = ({}: { transformation: DefinitionTransformation, onChange: (t: Transformation) => void }) => {
+    return (
+        <div className="flex gap-2 items-baseline">
+            <span>Type: definition</span>
+        </div>
+    )
+}
+
+const ReplaceHighlightControls = ({ transformation, onChange }: { transformation: ReplacementTransformation, onChange: (t: Transformation) => void }) => {
+    return (
+        <div className="flex gap-2 items-baseline">
+            <span>Type: replace</span>
+            <input className="border" type="text" name="replacement" id="replacement" value={transformation.replacement} onChange={e => onChange({ type: 'replacement', replacement: e.target.value })} />
         </div>
     )
 }
